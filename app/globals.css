@@ -1,60 +1,609 @@
-@layer base {
-  :root {
-    --background: #ffffff;
-    --foreground: #171717;
-  }
+@import "tailwindcss";
 
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --background: #0a0a0a;
-      --foreground: #ededed;
+/* ============================================
+   THEME CONFIGURATION (Tailwind v4)
+   ============================================ */
+
+@theme {
+  /* Custom breakpoints */
+  --breakpoint-xs: 475px;
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
+
+  /* Border radius */
+  --radius-lg: 0.75rem;
+  --radius-md: calc(0.75rem - 2px);
+  --radius-sm: calc(0.75rem - 4px);
+
+  /* Custom animations */
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-gradient: gradient 8s ease infinite;
+  --animate-shimmer: shimmer 2s linear infinite;
+
+  /* Responsive font sizes */
+  --font-size-xs-responsive: clamp(0.75rem, 2vw, 0.875rem);
+  --font-size-sm-responsive: clamp(0.875rem, 2.5vw, 1rem);
+  --font-size-base-responsive: clamp(1rem, 3vw, 1.125rem);
+  --font-size-lg-responsive: clamp(1.125rem, 3.5vw, 1.25rem);
+  --font-size-xl-responsive: clamp(1.25rem, 4vw, 1.5rem);
+  --font-size-2xl-responsive: clamp(1.5rem, 5vw, 1.875rem);
+  --font-size-3xl-responsive: clamp(1.875rem, 6vw, 2.25rem);
+  --font-size-4xl-responsive: clamp(2.25rem, 7vw, 3rem);
+  --font-size-5xl-responsive: clamp(3rem, 8vw, 3.75rem);
+
+  /* Custom colors for shadcn/ui compatibility */
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-chart-1: hsl(var(--chart-1));
+  --color-chart-2: hsl(var(--chart-2));
+  --color-chart-3: hsl(var(--chart-3));
+  --color-chart-4: hsl(var(--chart-4));
+  --color-chart-5: hsl(var(--chart-5));
+
+  @keyframes accordion-down {
+    from {
+      height: 0;
+    }
+    to {
+      height: var(--radix-accordion-content-height);
     }
   }
 
-  html,
-  body {
-    max-width: 100vw;
-    overflow-x: hidden;
-  }
-
-  body {
-    color: var(--foreground);
-    background: var(--background);
-    font-family: var(--font-inter), sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
-
-  code {
-    background-color: rgba(0, 0, 0, 0.05);
-    border-radius: 6px;
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    font-family: var(--font-source-code-pro), monospace;
-    font-size: 0.875rem;
-    padding: 0.25rem 0.5rem calc(0.25rem + 2px);
-  }
-
-  @media (prefers-color-scheme: dark) {
-    code {
-      background-color: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+  @keyframes accordion-up {
+    from {
+      height: var(--radix-accordion-content-height);
+    }
+    to {
+      height: 0;
     }
   }
 
-  * {
-    box-sizing: border-box;
-    padding: 0;
-    margin: 0;
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-20px);
+    }
   }
 
-  a {
-    color: inherit;
-    text-decoration: none;
+  @keyframes gradient {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
   }
 
-  @media (prefers-color-scheme: dark) {
-    html {
-      color-scheme: dark;
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
     }
   }
 }
+
+/* ============================================
+   CSS VARIABLES (Light/Dark Theme)
+   ============================================ */
+
+:root {
+  --background: 0 0% 100%;
+  --foreground: 0 0% 3.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 3.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 3.9%;
+  --primary: 0 0% 9%;
+  --primary-foreground: 0 0% 98%;
+  --secondary: 0 0% 96.1%;
+  --secondary-foreground: 0 0% 9%;
+  --muted: 0 0% 96.1%;
+  --muted-foreground: 0 0% 45.1%;
+  --accent: 0 0% 96.1%;
+  --accent-foreground: 0 0% 9%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 0 0% 89.8%;
+  --input: 0 0% 89.8%;
+  --ring: 0 0% 3.9%;
+  --chart-1: 12 76% 61%;
+  --chart-2: 173 58% 39%;
+  --chart-3: 197 37% 24%;
+  --chart-4: 43 74% 66%;
+  --chart-5: 27 87% 67%;
+  --radius: 0.75rem;
+}
+
+.dark {
+  --background: 0 0% 0%;
+  --foreground: 0 0% 98%;
+  --card: 0 0% 3.9%;
+  --card-foreground: 0 0% 98%;
+  --popover: 0 0% 3.9%;
+  --popover-foreground: 0 0% 98%;
+  --primary: 0 0% 98%;
+  --primary-foreground: 0 0% 9%;
+  --secondary: 0 0% 14.9%;
+  --secondary-foreground: 0 0% 98%;
+  --muted: 0 0% 14.9%;
+  --muted-foreground: 0 0% 63.9%;
+  --accent: 0 0% 14.9%;
+  --accent-foreground: 0 0% 98%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 0 0% 14.9%;
+  --input: 0 0% 14.9%;
+  --ring: 0 0% 83.1%;
+  --chart-1: 220 70% 50%;
+  --chart-2: 160 60% 45%;
+  --chart-3: 30 80% 55%;
+  --chart-4: 280 65% 60%;
+  --chart-5: 340 75% 55%;
+}
+
+/* ============================================
+   BASE STYLES
+   ============================================ */
+
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Custom Text Selection Styles with Brand Colors */
+  ::selection {
+    background: #8b5cf6; /* violet-500 */
+    color: #ffffff;
+  }
+
+  ::-moz-selection {
+    background: #8b5cf6; /* violet-500 */
+    color: #ffffff;
+  }
+
+  /* Alternative selection for input fields and textareas */
+  input::selection,
+  textarea::selection {
+    background: #a78bfa; /* violet-400 for better visibility in inputs */
+    color: #ffffff;
+  }
+
+  input::-moz-selection,
+  textarea::-moz-selection {
+    background: #a78bfa; /* violet-400 for better visibility in inputs */
+    color: #ffffff;
+  }
+
+  /* Code blocks selection with pink accent */
+  code::selection,
+  pre::selection {
+    background: #ec4899; /* pink-500 for code */
+    color: #ffffff;
+  }
+
+  code::-moz-selection,
+  pre::-moz-selection {
+    background: #ec4899; /* pink-500 for code */
+    color: #ffffff;
+  }
+
+  /* Button text selection */
+  button::selection {
+    background: #7c3aed; /* violet-600 */
+    color: #ffffff;
+  }
+
+  button::-moz-selection {
+    background: #7c3aed; /* violet-600 */
+    color: #ffffff;
+  }
+
+  /* Custom scrollbar styles with brand colors */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background-color: #000000;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #7c3aed 0%, #ec4899 100%);
+    border-radius: 9999px;
+    border: 2px solid black;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #6d28d9 0%, #db2777 100%);
+  }
+
+  /* Firefox scrollbar with brand colors */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #8b5cf6 #000000;
+  }
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+
+@utility text-responsive-xs {
+  font-size: clamp(0.75rem, 2vw, 0.875rem);
+}
+
+@utility text-responsive-sm {
+  font-size: clamp(0.875rem, 2.5vw, 1rem);
+}
+
+@utility text-responsive-base {
+  font-size: clamp(1rem, 3vw, 1.125rem);
+}
+
+@utility text-responsive-lg {
+  font-size: clamp(1.125rem, 3.5vw, 1.25rem);
+}
+
+@utility text-responsive-xl {
+  font-size: clamp(1.25rem, 4vw, 1.5rem);
+}
+
+@utility text-responsive-2xl {
+  font-size: clamp(1.5rem, 5vw, 1.875rem);
+}
+
+@utility text-responsive-3xl {
+  font-size: clamp(1.875rem, 6vw, 2.25rem);
+}
+
+@utility text-responsive-4xl {
+  font-size: clamp(2.25rem, 7vw, 3rem);
+}
+
+@utility p-responsive {
+  padding: 1rem;
+  @media (min-width: 640px) {
+    padding: 1.5rem;
+  }
+  @media (min-width: 768px) {
+    padding: 2rem;
+  }
+}
+
+@utility px-responsive {
+  padding-left: 1rem;
+  padding-right: 1rem;
+  @media (min-width: 640px) {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+  @media (min-width: 768px) {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+@utility py-responsive {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+  @media (min-width: 640px) {
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
+  }
+  @media (min-width: 768px) {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+  }
+}
+
+/* Text gradients */
+@utility text-gradient {
+  background-image: linear-gradient(to right, #a78bfa, #f472b6, #fb923c);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@utility text-gradient-purple {
+  background-image: linear-gradient(to right, #8b5cf6, #a855f7);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@utility text-gradient-pink {
+  background-image: linear-gradient(to right, #ec4899, #f43f5e);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@utility text-gradient-green {
+  background-image: linear-gradient(to right, #10b981, #14b8a6);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@utility text-gradient-yellow {
+  background-image: linear-gradient(to right, #f59e0b, #f97316);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Background gradients */
+@utility bg-gradient-glass {
+  background-color: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+@utility bg-gradient-glass-hover {
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+  transition: all 0.2s;
+}
+
+/* Animation utilities */
+@utility animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+@utility animate-pulse-slow {
+  animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@utility animate-gradient {
+  animation: gradient 8s ease infinite;
+  background-size: 200% 200%;
+}
+
+@utility animate-shimmer {
+  animation: shimmer 2s linear infinite;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+  background-size: 200% 100%;
+}
+
+/* Glow effects */
+@utility glow-purple {
+  box-shadow: 0 0 30px rgba(139, 92, 246, 0.3);
+}
+
+@utility glow-pink {
+  box-shadow: 0 0 30px rgba(236, 72, 153, 0.3);
+}
+
+@utility glow-emerald {
+  box-shadow: 0 0 30px rgba(16, 185, 129, 0.3);
+}
+
+/* Hover lift effect */
+@utility hover-lift {
+  transition: transform 0.2s;
+  &:hover {
+    transform: translateY(-0.25rem);
+  }
+}
+
+/* Glass morphism */
+@utility glass {
+  background-color: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+@utility glass-dark {
+  background-color: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* ============================================
+   COMPONENT STYLES
+   ============================================ */
+
+/* Loading skeleton */
+.skeleton {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  background-color: #1f2937;
+  border-radius: 0.5rem;
+}
+
+/* Neon text effect */
+.neon-text {
+  text-shadow:
+    0 0 5px currentColor,
+    0 0 10px currentColor,
+    0 0 20px currentColor,
+    0 0 40px currentColor;
+}
+
+/* Smooth transitions for interactive elements */
+button, a, input, textarea, select {
+  transition: all 0.2s;
+}
+
+/* Focus styles with brand colors */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px #000, 0 0 0 4px #8b5cf6;
+}
+
+/* Special highlight classes for important text */
+.highlight-brand::selection {
+  background: #7c3aed;
+  color: #ffffff;
+}
+
+.highlight-brand::-moz-selection {
+  background: #7c3aed;
+  color: #ffffff;
+}
+
+/* Emerald highlight for money/success related text */
+.highlight-money::selection {
+  background: #10b981;
+  color: #ffffff;
+}
+
+.highlight-money::-moz-selection {
+  background: #10b981;
+  color: #ffffff;
+}
+
+/* Card hover effects */
+.card-hover {
+  transition: all 0.3s;
+}
+.card-hover:hover {
+  transform: scale(1.02);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+/* Responsive container */
+@utility container-responsive {
+  width: 100%;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 80rem;
+  @media (min-width: 640px) {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+  @media (min-width: 1024px) {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+/* Responsive grid */
+@utility grid-responsive {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 1rem;
+  @media (min-width: 640px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.5rem;
+  }
+  @media (min-width: 1024px) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* Mobile-only and Desktop-only utilities */
+@utility mobile-only {
+  display: block;
+  @media (min-width: 640px) {
+    display: none;
+  }
+}
+
+@utility desktop-only {
+  display: none;
+  @media (min-width: 640px) {
+    display: block;
+  }
+}
+
+/* Responsive spacing */
+@utility space-y-responsive {
+  & > * + * {
+    margin-top: 0.75rem;
+  }
+  @media (min-width: 640px) {
+    & > * + * {
+      margin-top: 1rem;
+    }
+  }
+  @media (min-width: 768px) {
+    & > * + * {
+      margin-top: 1.5rem;
+    }
+  }
+}
+
+@utility gap-responsive {
+  gap: 0.75rem;
+  @media (min-width: 640px) {
+    gap: 1rem;
+  }
+  @media (min-width: 768px) {
+    gap: 1.5rem;
+  }
+}
+
+/* Gradient border */
+.gradient-border {
+  position: relative;
+  background: linear-gradient(#000, #000) padding-box,
+              linear-gradient(to right, #8b5cf6, #ec4899) border-box;
+  border: 2px solid transparent;
+  border-radius: 1rem;
+}
+
+/* Disable text selection for UI elements */
+.no-select {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Custom selection colors for different sections */
+.selection-violet::selection { background: #7c3aed; color: #ffffff; }
+.selection-violet::-moz-selection { background: #7c3aed; color: #ffffff; }
+
+.selection-pink::selection { background: #ec4899; color: #ffffff; }
+.selection-pink::-moz-selection { background: #ec4899; color: #ffffff; }
+
+.selection-emerald::selection { background: #10b981; color: #ffffff; }
+.selection-emerald::-moz-selection { background: #10b981; color: #ffffff; }
+
+.selection-amber::selection { background: #f59e0b; color: #ffffff; }
+.selection-amber::-moz-selection { background: #f59e0b; color: #ffffff; }

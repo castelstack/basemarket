@@ -1,0 +1,33 @@
+// constants/contestants.ts
+
+export const CONTESTANTS = [
+  'Bright Morgan',
+  // 'Danboskid',
+  'Dede',
+  'Denari',
+  'Doris',
+  'Faith',
+  // 'Gigi Jasmine',
+  // 'Ibifubara',
+  'Imisi',
+  'Isabella',
+  'Ivatar',
+  'Jason Jae',
+  'Joanna',
+  'Kaybobo',
+  // 'Kayikunmi',
+  'Kola',
+  'Koyin',
+  'Kuture',
+  'Mensan',
+  'Mide',
+  // 'Otega',
+  'Rooboy',
+  // 'Sabrina',
+  'Sultana',
+  'Thelma Lawson',
+  'Tracy',
+  'Zita',
+  'Big Soso',
+  // 'Victory'
+];

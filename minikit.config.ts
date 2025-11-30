@@ -1,6 +1,6 @@
 const ROOT_URL =
   process.env.NEXT_PUBLIC_URL ||
-  (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : 'http://localhost:3000');
+  (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : 'http://localhost:4000');
 
 /**
  * MiniApp configuration object. Must follow the Farcaster MiniApp specification.
@@ -15,22 +15,21 @@ export const minikitConfig = {
   },
   miniapp: {
     version: "1",
-    name: "Cubey", 
-    subtitle: "Your AI Ad Companion", 
-    description: "Ads",
+    name: "ShowStakr",
+    subtitle: "Entertainment Prediction Game",
+    description: "Predict entertainment show outcomes. Stake on your favorites and win USDC from other players!",
     screenshotUrls: [`${ROOT_URL}/screenshot-portrait.png`],
-    iconUrl: `${ROOT_URL}/blue-icon.png`,
-    splashImageUrl: `${ROOT_URL}/blue-hero.png`,
+    iconUrl: `${ROOT_URL}/icon.png`,
+    splashImageUrl: `${ROOT_URL}/hero.png`,
     splashBackgroundColor: "#000000",
     homeUrl: ROOT_URL,
     webhookUrl: `${ROOT_URL}/api/webhook`,
-    primaryCategory: "social",
-    tags: ["marketing", "ads", "quickstart", "waitlist"],
-    heroImageUrl: `${ROOT_URL}/blue-hero.png`, 
-    tagline: "",
-    ogTitle: "",
-    ogDescription: "",
-    ogImageUrl: `${ROOT_URL}/blue-hero.png`,
+    primaryCategory: "games",
+    tags: ["predictions", "entertainment", "gaming", "crypto", "usdc", "base"],
+    heroImageUrl: `${ROOT_URL}/hero.png`,
+    tagline: "Turn Your Vibes Into Cash",
+    ogTitle: "ShowStakr - Entertainment Prediction Game",
+    ogDescription: "Predict entertainment show outcomes. Stake on your favorites and win USDC from other players!",
+    ogImageUrl: `${ROOT_URL}/hero.png`,
   },
 } as const;
-
