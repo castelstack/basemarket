@@ -547,7 +547,6 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Achievement Banner */}
         {/* {userStats?.winStreak > 0 && (
         <div className='mt-10'>
           <Card className='bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-red-500/10 border-orange-500/20'>
