@@ -1,37 +1,33 @@
 // lib/api.ts
 
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
-import { ApiResponse } from '../types/api';
-import { toast } from 'sonner';
+import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
+import { ApiResponse } from "../types/api";
+import { toast } from "sonner";
 
-export const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+export const BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
-// Flag to prevent multiple redirects
-let isRedirecting = false;
+// Flag to prevent multiple toast notifications
+let hasShownUnauthorizedToast = false;
 
-// Function to reset redirect flag (call this on successful login)
-export const resetRedirectFlag = () => {
-  isRedirecting = false;
+// Function to reset the unauthorized flag (call this on successful login)
+export const resetUnauthorizedFlag = () => {
+  hasShownUnauthorizedToast = false;
 };
 
-// Function to handle 401 errors
+// Function to handle 401 errors - clears auth state, components react accordingly
 export const handleUnauthorized = () => {
-  if (typeof window !== 'undefined' && !isRedirecting) {
-    // Set flag to prevent multiple redirects
-    isRedirecting = true;
-    
-    // Show toast notification
-    toast.error('Session expired. Please login again.');
-    
+  if (typeof window !== "undefined") {
     // Clear all auth-related data from localStorage
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('auth-store');
-    localStorage.removeItem('user');
-    
-    // Redirect to login page after a short delay for toast to be visible
-    setTimeout(() => {
-      window.location.href = '/login';
-    }, 1000);
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("auth-store");
+    localStorage.removeItem("user");
+
+    // Show toast only once per session
+    if (!hasShownUnauthorizedToast) {
+      hasShownUnauthorizedToast = true;
+      toast.error("Session expired. Please login again.");
+    }
   }
 };
 
@@ -43,23 +39,18 @@ class ApiClient {
     this.client = axios.create({
       baseURL,
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
     });
 
     // Initialize token from localStorage if available
-    if (typeof window !== 'undefined') {
-      this.token = localStorage.getItem('accessToken');
+    if (typeof window !== "undefined") {
+      this.token = localStorage.getItem("accessToken");
     }
 
     // Set up request interceptor to add auth token
     this.client.interceptors.request.use(
       (config) => {
-        // Block requests if we're already redirecting due to 401
-        if (isRedirecting) {
-          return Promise.reject(new Error('Redirecting to login...'));
-        }
-        
         if (this.token) {
           config.headers.Authorization = `Bearer ${this.token}`;
         }
@@ -76,7 +67,7 @@ class ApiClient {
         return response.data;
       },
       (error: any) => {
-        console.error('API request failed:', error);
+        console.error("API request failed:", error);
 
         // Create a custom error object that preserves all important data
         const customError = new Error();
@@ -91,7 +82,9 @@ class ApiClient {
             this.setToken(null);
             handleUnauthorized();
             // Return early to prevent further processing
-            return Promise.reject(new Error('Unauthorized - Redirecting to login'));
+            return Promise.reject(
+              new Error("Unauthorized - Redirecting to login")
+            );
           }
 
           // Set the error message from the response
@@ -103,7 +96,7 @@ class ApiClient {
             }
           } else if (data?.error) {
             customError.message = data.error;
-          } else if (typeof data === 'string') {
+          } else if (typeof data === "string") {
             customError.message = data;
           } else {
             customError.message = `Request failed with status code ${status}`;
@@ -117,12 +110,12 @@ class ApiClient {
           (customError as any).requestPath = data?.requestPath;
         } else if (error.request) {
           // Network error
-          customError.message = 'Network error - no response received';
+          customError.message = "Network error - no response received";
           (customError as any).status = null;
           (customError as any).data = null;
         } else {
           // Something else happened
-          customError.message = error.message || 'An unexpected error occurred';
+          customError.message = error.message || "An unexpected error occurred";
           (customError as any).status = null;
           (customError as any).data = null;
         }
@@ -137,11 +130,11 @@ class ApiClient {
 
   setToken(token: string | null) {
     this.token = token;
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       if (token) {
-        localStorage.setItem('accessToken', token);
+        localStorage.setItem("accessToken", token);
       } else {
-        localStorage.removeItem('accessToken');
+        localStorage.removeItem("accessToken");
       }
     }
   }

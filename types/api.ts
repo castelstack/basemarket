@@ -348,3 +348,53 @@ export interface AdminTransactionParams extends PaginationParams {
   maxAmount?: number;
   search?: string;
 }
+
+// Wallet Authentication Types
+export interface WalletNonceRequest {
+  address: string;
+  chainId: number;
+}
+
+export interface WalletNonceResponse {
+  nonce: string;
+  address: string;
+  chainId: number;
+  issuedAt: string;
+  expiresAt: string;
+}
+
+export interface WalletMessageRequest {
+  address: string;
+  chainId: number;
+}
+
+export interface WalletMessageResponse {
+  message: string;
+}
+
+export interface WalletSignInRequest {
+  message: string;
+  signature: string;
+  verified?: boolean;
+}
+
+export interface WalletSignInResponse {
+  accessToken: string;
+  refreshToken: string;
+  user: User & {
+    isNewUser?: boolean;
+  };
+}
+
+export interface RefreshTokenRequest {
+  refreshToken: string;
+}
+
+export interface RefreshTokenResponse {
+  accessToken: string;
+  refreshToken: string;
+}
+
+export interface LogoutRequest {
+  refreshToken: string;
+}

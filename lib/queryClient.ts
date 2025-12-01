@@ -11,7 +11,7 @@ export const queryClient = new QueryClient({
         if (error?.status === 401 || error?.status === 403) {
           return false;
         }
-        return failureCount < 3;
+        return failureCount < 1;
       },
       refetchOnWindowFocus: false,
     },
@@ -21,7 +21,7 @@ export const queryClient = new QueryClient({
         if (error?.status >= 400 && error?.status < 500) {
           return false;
         }
-        return failureCount < 2;
+        return failureCount < 1;
       },
     },
   },

@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useAccount } from "wagmi";
-import { sdk } from "@farcaster/miniapp-sdk";
+import { useAccountEffect } from "wagmi";
 import {
   ConnectWallet,
   Wallet,
@@ -12,10 +11,13 @@ import {
   WalletDropdownBasename,
   WalletDropdownFundLink,
   WalletDropdownDisconnect,
+  WalletAdvancedAddressDetails
 } from "@coinbase/onchainkit/wallet";
 import { Address, Avatar, Name, Identity } from "@coinbase/onchainkit/identity";
 import { useAuthStore } from "@/stores/authStore";
 import { useUnreadNotificationsCount } from "@/lib/notifications";
+import { useWalletBalance } from "@/lib/wallet";
+import { useWalletAuth } from "@/hooks/use-wallet-auth";
 import {
   Menu,
   X,
@@ -31,6 +33,7 @@ import {
   Shield,
   Bell,
   Crown,
+  Loader2,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -41,49 +44,44 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/assets/logo";
-import numeral from "numeral";
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [authToken, setAuthToken] = useState<string | null>(null);
-  const { user, balance, isAdmin, isSubAdmin } = useAuthStore();
+  const { user, balance, isAdmin, isSubAdmin, updateBalance } = useAuthStore();
   const pathname = usePathname();
 
-  const { isConnected } = useAccount();
+  // Use the comprehensive wallet auth hook
+  const {
+    isWalletConnected,
+    isAuthenticated,
+    isLoading: isSigningIn,
+    showSignIn,
+    isWrongNetwork,
+    isSwitchingNetwork,
+    switchToCorrectNetwork,
+    signIn,
+    signOut,
+  } = useWalletAuth();
 
-  console.log("Wallet connected:", user);
-  // Quick Auth - get token when wallet connects
-  // Quick Auth - get token when wallet connects
-  const handleQuickAuth = useCallback(async () => {
-    try {
-      const { token } = await sdk.quickAuth.getToken();
-      setAuthToken(token);
-      alert(token);
-      console.log("Quick Auth Token:", token);
-    } catch (error) {
-      console.log("Quick Auth failed:", error);
-    }
-  }, []);
+  // Fetch wallet balance when authenticated
+  const { data: balanceData } = useWalletBalance(isAuthenticated);
 
-  // Trigger Quick Auth when wallet connects
+  // Update balance when fetched
   useEffect(() => {
-    if (isConnected && !authToken) {
-      handleQuickAuth();
+    if (balanceData?.data?.availableBalance !== undefined) {
+      updateBalance(balanceData.data.availableBalance);
     }
-    // Clear token when disconnected
-    if (!isConnected) {
-      setAuthToken(null);
-    }
-  }, [isConnected, authToken, handleQuickAuth]);
+  }, [balanceData, updateBalance]);
+
+  // Handle wallet disconnect
+  useAccountEffect({
+    onDisconnect: () => {
+      signOut();
+    },
+  });
 
   // Call the hook (it now handles user check internally)
   const { data: unreadCountData } = useUnreadNotificationsCount();
@@ -270,29 +268,8 @@ export default function Navbar() {
           {/* Desktop User Section */}
           <div className="hidden md:flex items-center gap-2 lg:gap-3 xl:gap-4">
             <div className="flex items-center gap-2 lg:gap-3">
-              {/* Balance Badge - only show when connected */}
-              {isConnected && (
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Link href="/wallet" className="hidden xl:block">
-                        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all cursor-pointer">
-                          <WalletIcon className="w-3.5 h-3.5 text-emerald-400" />
-                          <span className="text-xs font-bold text-emerald-400">
-                            {numeral(balance).format("0.00")} USDC
-                          </span>
-                        </div>
-                      </Link>
-                    </TooltipTrigger>
-                    <TooltipContent className="bg-black/95 border-emerald-500/20 text-emerald-400">
-                      <p className="font-semibold">{balance.toFixed(2)} USDC</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              )}
-
-              {/* Notifications Button - only show when connected */}
-              {isConnected && (
+              {/* Notifications Button - only show when authenticated */}
+              {isWalletConnected && user && (
                 <Link href="/notifications">
                   <button className="relative p-2 lg:p-2.5 rounded-xl hover:bg-white/5 transition-all group">
                     <Bell className="w-4 lg:w-5 h-4 lg:h-5 text-gray-400 group-hover:text-white transition-colors" />
@@ -307,14 +284,62 @@ export default function Navbar() {
                 </Link>
               )}
 
+              {/* Switch Network button - show when on wrong network */}
+              {isWalletConnected && isWrongNetwork && (
+                <button
+                  onClick={switchToCorrectNetwork}
+                  disabled={isSwitchingNetwork}
+                  className="flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold px-4 py-2 rounded-xl transition-all disabled:opacity-50"
+                >
+                  {isSwitchingNetwork ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Switching...</span>
+                    </>
+                  ) : (
+                    <span>Switch Network</span>
+                  )}
+                </button>
+              )}
+
+              {/* Sign In button - show when connected but not authenticated and on correct network */}
+              {isWalletConnected && showSignIn && !isWrongNetwork && (
+                <button
+                  onClick={signIn}
+                  disabled={isSigningIn}
+                  className="flex items-center gap-2 bg-gradient-to-r from-violet-500 to-pink-500 hover:from-violet-600 hover:to-pink-600 text-white font-semibold px-4 py-2 rounded-xl transition-all disabled:opacity-50"
+                >
+                  {isSigningIn ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Signing in...</span>
+                    </>
+                  ) : (
+                    <span>Sign In</span>
+                  )}
+                </button>
+              )}
+
+              {/* Loading state - when wallet connected but still checking profile */}
+              {isWalletConnected && !user && !isWrongNetwork && !showSignIn && (
+                <button
+                  disabled
+                  className="flex items-center gap-2 bg-white/10 text-gray-400 font-semibold px-4 py-2 rounded-xl transition-all cursor-not-allowed"
+                >
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Loading...</span>
+                </button>
+              )}
+
               {/* OnchainKit Wallet with Avatar and Profile Dropdown */}
+              {/* {isWalletConnected && user ? ( */}
               <Wallet>
-                <ConnectWallet className="!bg-gradient-to-r !from-violet-500 !to-pink-500 hover:!from-violet-600 hover:!to-pink-600 !text-white !font-semibold !rounded-xl xl:!rounded-2xl !px-3 lg:!px-4 !py-2 !transition-all">
-                  <Avatar className="!w-6 !h-6" />
-                  <Name className="!text-sm !font-semibold" />
+                <ConnectWallet className="!bg-transparent !p-0 !min-w-0">
+                  <Avatar className="!w-9 !h-9 rounded-xl" />
                 </ConnectWallet>
                 <WalletDropdown className="!bg-transparent !backdrop-blur-xl !border-none !border-white/10 !rounded-2xl !p-0 !my-0 min-w-[280px]">
                   {/* Identity Section */}
+                  <WalletAdvancedAddressDetails/>
                   <Identity
                     className="px-3 py-3 mb-2 rounded-xl bg-gradient-to-r from-violet-500/10 to-pink-500/10 border border-purple-500/20"
                     hasCopyAddressOnClick
@@ -393,279 +418,184 @@ export default function Navbar() {
                   />
                 </WalletDropdown>
               </Wallet>
+              {/* // ) : !isWalletConnected ? (
+              //   <Wallet>
+              //     <ConnectWallet className="!bg-gradient-to-r !from-violet-500 !to-pink-500 hover:!from-violet-600 hover:!to-pink-600 !text-white !font-semibold !rounded-xl xl:!rounded-2xl !px-3 lg:!px-4 !py-2 !transition-all">
+              //       <span>Connect</span>
+              //     </ConnectWallet>
+              //   </Wallet>
+              // ) : null} */}
             </div>
           </div>
 
-          {/* Mobile menu button and wallet */}
+          {/* Mobile: Notifications, Avatar and Admin menu */}
           <div className="flex md:hidden items-center gap-2">
-            {isConnected && (
-              <Link href="/wallet">
-                <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all cursor-pointer">
-                  <WalletIcon className="w-3 h-3 text-emerald-400" />
-                  <span className="text-[10px] font-bold text-emerald-400">
-                    {balance >= 1000
-                      ? `${(balance / 1000).toFixed(1)}K`
-                      : balance.toFixed(2)}{" "}
-                    USDC
+            {/* Notifications - for all authenticated users */}
+            {user && (
+              <Link href="/notifications" className="relative p-2">
+                <Bell className="w-5 h-5 text-gray-400" />
+                {unreadCount > 0 && (
+                  <span className="absolute top-0.5 right-0.5 min-w-[16px] h-4 px-1 bg-pink-500 rounded-full flex items-center justify-center">
+                    <span className="text-[10px] font-bold text-white">
+                      {unreadCount > 9 ? "9+" : unreadCount}
+                    </span>
                   </span>
-                </div>
+                )}
               </Link>
             )}
-            {!isConnected && (
+
+            {/* Switch Network button */}
+            {isWalletConnected && isWrongNetwork && (
+              <button
+                onClick={switchToCorrectNetwork}
+                disabled={isSwitchingNetwork}
+                className="flex items-center gap-1.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold px-3 py-1.5 rounded-lg text-xs transition-all disabled:opacity-50"
+              >
+                {isSwitchingNetwork ? (
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                ) : (
+                  <span>Switch</span>
+                )}
+              </button>
+            )}
+
+            {/* Sign In button */}
+            {isWalletConnected && showSignIn && !isWrongNetwork && (
+              <button
+                onClick={signIn}
+                disabled={isSigningIn}
+                className="flex items-center gap-1.5 bg-gradient-to-r from-violet-500 to-pink-500 text-white font-semibold px-3 py-1.5 rounded-lg text-xs transition-all disabled:opacity-50"
+              >
+                {isSigningIn ? (
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                ) : (
+                  <span>Sign In</span>
+                )}
+              </button>
+            )}
+
+            {/* Avatar with dropdown for authenticated users */}
+            {isWalletConnected && user ? (
+              <Wallet>
+                <ConnectWallet className="!bg-transparent !p-0 !min-w-0">
+                  <Avatar className="!w-9 !h-9 rounded-xl" />
+                </ConnectWallet>
+                <WalletDropdown className="!bg-black/95 !backdrop-blur-xl !border !border-white/10 !rounded-2xl !p-2 !my-0 min-w-[280px]">
+                  <Identity
+                    className="px-3 py-3 mb-2 rounded-xl bg-gradient-to-r from-violet-500/10 to-pink-500/10 border border-purple-500/20"
+                    hasCopyAddressOnClick
+                  >
+                    <div className="flex items-center gap-3">
+                      <Avatar className="w-12 h-12 rounded-xl" />
+                      <div className="flex-1 min-w-0">
+                        <Name className="text-sm font-semibold text-white block truncate" />
+                        <Address className="text-xs text-gray-400 block truncate" />
+                      </div>
+                    </div>
+                  </Identity>
+
+                  <Link href="/wallet" className="block">
+                    <div className="px-3 py-3 mb-2 rounded-xl bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all cursor-pointer">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <WalletIcon className="w-4 h-4 text-emerald-400" />
+                          <span className="text-xs text-gray-400">Balance</span>
+                        </div>
+                        <span className="text-sm font-bold text-emerald-400">
+                          {balance.toFixed(2)} USDC
+                        </span>
+                      </div>
+                    </div>
+                  </Link>
+
+                  <WalletDropdownBasename className="!px-3 !py-2.5 !text-gray-300 hover:!text-white hover:!bg-violet-500/10 !rounded-xl !transition-all" />
+                  <WalletDropdownFundLink
+                    className="!px-3 !py-2.5 !text-gray-300 hover:!text-white hover:!bg-emerald-500/10 !rounded-xl !transition-all"
+                    text="Add Funds"
+                    popupSize="md"
+                  />
+
+                  <div className="h-px bg-white/5 my-2" />
+                  <WalletDropdownDisconnect
+                    className="!w-full !justify-start !px-3 !py-2.5 !text-red-400 hover:!text-red-300 hover:!bg-red-500/10 !rounded-xl !transition-all"
+                    text="Disconnect"
+                  />
+                </WalletDropdown>
+              </Wallet>
+            ) : !isWalletConnected ? (
               <Wallet>
                 <ConnectWallet
                   className="!bg-gradient-to-r !from-violet-500 !to-pink-500 !text-white !font-semibold !px-3 !py-1.5 !rounded-lg !text-xs"
                   disconnectedLabel="Connect"
                 />
               </Wallet>
+            ) : !isWrongNetwork && !showSignIn ? (
+              <div className="w-9 h-9 rounded-xl bg-white/10 animate-pulse" />
+            ) : null}
+
+            {/* Admin menu button - only show for admin/subadmin */}
+            {(isAdmin || isSubAdmin) && (
+              <button
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                className="p-2 rounded-xl hover:bg-white/10 transition-all text-white"
+              >
+                {isMenuOpen ? (
+                  <X className="w-5 h-5" />
+                ) : (
+                  <Menu className="w-5 h-5" />
+                )}
+              </button>
             )}
-            <button
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="p-1.5 xs:p-2 rounded-xl hover:bg-white/10 transition-all text-white"
-            >
-              {isMenuOpen ? (
-                <X className="w-5 xs:w-6 h-5 xs:h-6" />
-              ) : (
-                <Menu className="w-5 xs:w-6 h-5 xs:h-6" />
-              )}
-            </button>
           </div>
         </div>
       </div>
 
-      {/* Mobile menu */}
-      {isMenuOpen && (
+      {/* Mobile Admin Menu - only for admin/subadmin */}
+      {isMenuOpen && (isAdmin || isSubAdmin) && (
         <div className="md:hidden bg-black/95 backdrop-blur-xl border-t border-white/10">
-          <div className="px-3 xs:px-4 py-4 xs:py-6 space-y-4">
-            <div className="space-y-3">
-              {/* User Info - only show when connected */}
-              {isConnected ? (
-                <>
-                  <div className="flex items-center gap-3 p-3 xs:p-4 rounded-xl xs:rounded-2xl bg-gradient-to-r from-violet-500/10 to-pink-500/10 border border-purple-500/20">
-                    <Avatar className="w-10 xs:w-12 h-10 xs:h-12 rounded-lg xs:rounded-xl" />
-                    <div className="flex-1">
-                      <Name className="text-sm font-semibold text-white" />
-                      <p className="text-xs text-gray-400">
-                        {isAdmin
-                          ? "Admin"
-                          : isSubAdmin
-                          ? "Sub-Admin"
-                          : "Player"}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Balance Card */}
-                  <Link href="/wallet" onClick={() => setIsMenuOpen(false)}>
-                    <div className="flex items-center justify-between p-3 rounded-xl bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all cursor-pointer">
-                      <div className="flex items-center gap-2">
-                        <WalletIcon className="w-4 xs:w-5 h-4 xs:h-5 text-emerald-400" />
-                        <span className="text-xs xs:text-sm text-gray-400">
-                          Balance
-                        </span>
-                      </div>
-                      <span className="text-base xs:text-lg font-bold text-emerald-400">
-                        {balance.toFixed(2)} USDC
-                      </span>
-                    </div>
+          <div className="px-4 py-4 space-y-2">
+            {isAdmin && (
+              <>
+                <p className="text-xs text-gray-500 uppercase tracking-wider px-4 py-2">
+                  Admin Panel
+                </p>
+                {adminLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={() => setIsMenuOpen(false)}
+                    className="flex items-center gap-3 px-4 py-3 text-purple-300 hover:text-white hover:bg-purple-500/10 rounded-xl transition-all"
+                  >
+                    <link.icon className="w-5 h-5" />
+                    <span className="font-medium">{link.label}</span>
                   </Link>
-                </>
-              ) : (
-                <div className="p-4 rounded-xl bg-gradient-to-r from-violet-500/10 to-pink-500/10 border border-purple-500/20">
-                  <p className="text-sm text-gray-400 mb-3">
-                    Connect your wallet to get started
-                  </p>
-                  <Wallet>
-                    <ConnectWallet
-                      className="!w-full !bg-gradient-to-r !from-violet-500 !to-pink-500 hover:!from-violet-600 hover:!to-pink-600 !text-white !font-semibold !px-4 !py-3 !rounded-xl !transition-all"
-                      disconnectedLabel="Connect Wallet"
-                    />
-                    <WalletDropdown className="!bg-transparent !backdrop-blur-xl !border-none !border-white/10 !rounded-2xl !p-0 !my-0 min-w-[280px]">
-                      {/* Identity Section */}
-                      <Identity
-                        className="px-3 py-3 mb-2 rounded-xl bg-gradient-to-r from-violet-500/10 to-pink-500/10 border border-purple-500/20"
-                        hasCopyAddressOnClick
-                      >
-                        <div className="flex items-center gap-3">
-                          <Avatar className="w-12 h-12 rounded-xl" />
-                          <div className="flex-1 min-w-0">
-                            <Name className="text-sm font-semibold text-white block truncate" />
-                            <Address className="text-xs text-gray-400 block truncate" />
-                          </div>
-                        </div>
-                      </Identity>
+                ))}
+              </>
+            )}
 
-                      {/* Balance Section */}
-                      <Link href="/wallet" className="block mx-2">
-                        <div className="px-3 py-3 mb-2 rounded-xl bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all cursor-pointer">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <WalletIcon className="w-4 h-4 text-emerald-400" />
-                              <span className="text-xs text-gray-400">
-                                Balance
-                              </span>
-                            </div>
-                            <span className="text-sm font-bold text-emerald-400">
-                              {balance.toFixed(2)} USDC
-                            </span>
-                          </div>
-                        </div>
-                      </Link>
-
-                      {/* Basename - Link to profile or create one */}
-                      <WalletDropdownBasename className="!px-3 !py-2.5 !text-gray-300 hover:!text-white hover:!bg-violet-500/10 !rounded-xl !transition-all" />
-
-                      {/* Fund Link - Easy way to add funds */}
-                      <WalletDropdownFundLink
-                        className="!px-3 !py-2.5 !text-gray-300 hover:!text-white hover:!bg-emerald-500/10 !rounded-xl !transition-all"
-                        text="Add Funds"
-                        popupSize="md"
-                      />
-
-                      <div className="h-px bg-white/5 my-2" />
-
-                      <div className="text-gray-400 text-xs uppercase tracking-wider px-3 py-1">
-                        My Account
-                      </div>
-
-                      <Link
-                        href="/notifications"
-                        className="flex items-center gap-3 px-3 py-2.5 text-gray-300 hover:text-white hover:bg-white/5 rounded-xl transition-all"
-                      >
-                        <Bell className="w-4 h-4" />
-                        <span>Notifications</span>
-                        {unreadCount > 0 && (
-                          <Badge className="ml-auto bg-pink-500/20 text-pink-400 border-pink-500/30">
-                            {unreadCount}
-                          </Badge>
-                        )}
-                      </Link>
-                      <Link
-                        href="/wallet"
-                        className="flex items-center gap-3 px-3 py-2.5 text-gray-300 hover:text-white hover:bg-white/5 rounded-xl transition-all"
-                      >
-                        <WalletIcon className="w-4 h-4" />
-                        <span>Wallet</span>
-                      </Link>
-                      <Link
-                        href="/profile"
-                        className="flex items-center gap-3 px-3 py-2.5 text-gray-300 hover:text-white hover:bg-white/5 rounded-xl transition-all"
-                      >
-                        <Settings className="w-4 h-4" />
-                        <span>Settings</span>
-                      </Link>
-
-                      <div className="h-px bg-white/5 my-2" />
-                      <WalletDropdownDisconnect
-                        className="!w-full !justify-start !px-3 !py-2.5 !text-red-400 hover:!text-red-300 hover:!bg-red-500/10 !rounded-xl !transition-all"
-                        text="Disconnect"
-                      />
-                    </WalletDropdown>
-                  </Wallet>
-                </div>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              {navLinks.map(({ href, label, icon: Icon }) => (
+            {isSubAdmin && !isAdmin && (
+              <>
+                <p className="text-xs text-gray-500 uppercase tracking-wider px-4 py-2">
+                  Poll Management
+                </p>
                 <Link
-                  key={href}
-                  href={href}
+                  href="/admin/create"
                   onClick={() => setIsMenuOpen(false)}
-                  className={cn(
-                    "flex items-center gap-3 px-4 py-3 rounded-xl transition-all",
-                    isActiveLink(href)
-                      ? "bg-white/10 text-white"
-                      : "text-gray-400 hover:text-white hover:bg-white/5"
-                  )}
+                  className="flex items-center gap-3 px-4 py-3 text-blue-300 hover:text-white hover:bg-blue-500/10 rounded-xl transition-all"
                 >
-                  <Icon className="w-5 h-5" />
-                  <span className="font-medium">{label}</span>
+                  <Sparkles className="w-5 h-5" />
+                  <span className="font-medium">Create Poll</span>
                 </Link>
-              ))}
-
-              {/* Notifications Link */}
-              <Link
-                href="/notifications"
-                onClick={() => setIsMenuOpen(false)}
-                className="flex items-center gap-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl transition-all relative"
-              >
-                <Bell className="w-5 h-5" />
-                <span className="font-medium">Notifications</span>
-                {unreadCount > 0 && (
-                  <Badge className="ml-auto bg-pink-500/20 text-pink-400 border-pink-500/30">
-                    {unreadCount}
-                  </Badge>
-                )}
-              </Link>
-
-              {/* Settings Link */}
-              <Link
-                href="/profile"
-                onClick={() => setIsMenuOpen(false)}
-                className="flex items-center gap-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl transition-all"
-              >
-                <Settings className="w-5 h-5" />
-                <span className="font-medium">Settings</span>
-              </Link>
-
-              {isAdmin && (
-                <>
-                  <div className="pt-2 pb-1">
-                    <p className="text-xs text-gray-500 uppercase tracking-wider px-4">
-                      Admin
-                    </p>
-                  </div>
-                  {adminLinks.map((link) => (
-                    <Link
-                      key={link.href}
-                      href={link.href}
-                      onClick={() => setIsMenuOpen(false)}
-                      className="flex items-center gap-3 px-4 py-3 text-purple-300 hover:text-white hover:bg-purple-500/10 rounded-xl transition-all"
-                    >
-                      <link.icon className="w-5 h-5" />
-                      <span className="font-medium">{link.label}</span>
-                    </Link>
-                  ))}
-                </>
-              )}
-
-              {/* Sub-Admin Menu for Mobile */}
-              {isSubAdmin && !isAdmin && (
-                <>
-                  <div className="pt-2 pb-1">
-                    <p className="text-xs text-gray-500 uppercase tracking-wider px-4">
-                      Poll Management
-                    </p>
-                  </div>
-                  <Link
-                    href="/admin/create"
-                    onClick={() => setIsMenuOpen(false)}
-                    className="flex items-center gap-3 px-4 py-3 text-blue-300 hover:text-white hover:bg-blue-500/10 rounded-xl transition-all"
-                  >
-                    <Sparkles className="w-5 h-5" />
-                    <span className="font-medium">Create Poll</span>
-                  </Link>
-                  <Link
-                    href="/polls"
-                    onClick={() => setIsMenuOpen(false)}
-                    className="flex items-center gap-3 px-4 py-3 text-blue-300 hover:text-white hover:bg-blue-500/10 rounded-xl transition-all"
-                  >
-                    <Trophy className="w-5 h-5" />
-                    <span className="font-medium">Manage Polls</span>
-                  </Link>
-                </>
-              )}
-
-              {/* Disconnect button for mobile - using wagmi directly */}
-              {isConnected && (
-                <div className="pt-4 border-t border-white/10">
-                  <Wallet>
-                    <ConnectWallet className="!w-full !bg-red-500/10 hover:!bg-red-500/20 !text-red-400 !font-semibold !px-4 !py-3 !rounded-xl !transition-all !border !border-red-500/20" />
-                  </Wallet>
-                </div>
-              )}
-            </div>
+                <Link
+                  href="/admin/polls"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="flex items-center gap-3 px-4 py-3 text-blue-300 hover:text-white hover:bg-blue-500/10 rounded-xl transition-all"
+                >
+                  <Trophy className="w-5 h-5" />
+                  <span className="font-medium">Manage Polls</span>
+                </Link>
+              </>
+            )}
           </div>
         </div>
       )}

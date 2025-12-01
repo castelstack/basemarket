@@ -8,7 +8,6 @@ import {
   UpdateEmailRequest,
   UpdatePasswordRequest,
   PaginationParams,
-  ApiResponse,
 } from '../types/api';
 
 // User API functions
@@ -80,7 +79,7 @@ export const useUserProfile = (enabled: boolean = true) => {
   return useQuery({
     queryKey: ['user', 'profile'],
     queryFn: userApi.getProfile,
-    enabled,
+    enabled
   });
 };
 

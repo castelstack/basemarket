@@ -2,7 +2,6 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '../lib/api';
-import { ApiResponse } from '../types/api';
 
 // Health API functions
 export const healthApi = {

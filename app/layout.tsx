@@ -5,6 +5,7 @@ import { SafeArea } from '@coinbase/onchainkit/minikit';
 import { minikitConfig } from '../minikit.config';
 import { RootProvider } from './rootProvider';
 import Navbar from '@/components/Layout/Navbar';
+import BottomNav from '@/components/Layout/BottomNav';
 import Footer from '@/components/Layout/Footer';
 import { RQProvider } from '@/layouts/RQProvider';
 import { Toaster } from 'sonner';
@@ -88,7 +89,7 @@ export default function RootLayout({
               <SafeArea>
                 <Navbar />
                 <Toaster
-                  position='top-right'
+                  position='top-center'
                   toastOptions={{
                     style: {
                       background: 'rgba(0, 0, 0, 0.9)',
@@ -98,8 +99,9 @@ export default function RootLayout({
                     },
                   }}
                 />
-                <main className='min-h-screen'>{children}</main>
+                <main className='min-h-screen pb-24 md:pb-0'>{children}</main>
                 <Footer />
+                <BottomNav />
               </SafeArea>
             </Suspense>
           </RQProvider>
