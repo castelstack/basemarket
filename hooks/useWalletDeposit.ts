@@ -16,8 +16,8 @@ import { useAuthStore } from "@/stores/authStore";
 const USDC_ADDRESS_MAINNET = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913" as const;
 // USDC contract address on Base Sepolia
 const USDC_ADDRESS_SEPOLIA = "0x036CbD53842c5426634e7929541eC2318f3dCF7e" as const;
-// Platform deposit address
-const DEPOSIT_ADDRESS = "0xc225dd56d374e44a65b0ad41933d9d6e3e09b77d" as const;
+// Platform deposit address from env
+const DEPOSIT_ADDRESS = (process.env.NEXT_PUBLIC_DEPOSIT_ADDRESS || "0x0000000000000000000000000000000000000000") as `0x${string}`;
 
 // Get expected chain ID from env
 const EXPECTED_CHAIN_ID = Number(process.env.NEXT_PUBLIC_CHAIN_ID) || 8453;

@@ -12,27 +12,32 @@ const navItems = [
     href: "/dashboard",
     label: "Home",
     icon: Home,
+    requiresAuth: true,
   },
   {
     href: "/polls",
     label: "Predict",
     icon: Trophy,
+    requiresAuth: false,
   },
   {
     href: "/wallet",
     label: "Wallet",
     icon: Wallet,
+    requiresAuth: true,
   },
   {
     href: "/notifications",
     label: "Alerts",
     icon: Bell,
     showBadge: true,
+    requiresAuth: true,
   },
   {
     href: "/profile",
     label: "Profile",
     icon: User,
+    requiresAuth: true,
   },
 ];
 
@@ -42,8 +47,13 @@ export default function BottomNav() {
   const { data: unreadCountData } = useUnreadNotificationsCount();
   const unreadCount = unreadCountData?.data?.count || 0;
 
-  // Don't show on admin pages
-  if (pathname.startsWith("/admin")) return null;
+  // Don't show on admin pages or landing page
+  if (pathname.startsWith("/admin") || pathname === "/") return null;
+
+  // Filter items based on auth status
+  const visibleItems = navItems.filter(
+    (item) => !item.requiresAuth || (item.requiresAuth && user)
+  );
 
   const isActive = (href: string) => {
     return pathname === href || pathname.startsWith(href + "/");
@@ -52,14 +62,14 @@ export default function BottomNav() {
   return (
     <nav className="fixed bottom-4 left-4 right-4 z-50 md:hidden">
       <div className="flex items-center justify-around px-2 bg-black/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-lg shadow-black/50">
-        {navItems.map(({ href, label, icon: Icon, showBadge }) => {
+        {visibleItems.map(({ href, label, icon: Icon, showBadge }) => {
           const active = isActive(href);
           return (
             <Link
               key={href}
               href={href}
               className={cn(
-                "flex flex-col items-center justify-center py-2 px-3 min-w-[64px] min-h-[56px] transition-all",
+                "flex flex-col items-center justify-center py-2 px-3 min-w-[56px] min-h-[56px] transition-all",
                 "active:scale-95 touch-manipulation",
                 active ? "text-white" : "text-gray-500"
               )}
@@ -67,13 +77,13 @@ export default function BottomNav() {
               <div className="relative">
                 <Icon
                   className={cn(
-                    "w-6 h-6 transition-all",
+                    "w-5 h-5 transition-all",
                     active && "text-violet-400"
                   )}
                   strokeWidth={active ? 2.5 : 2}
                 />
                 {showBadge && unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 bg-pink-500 rounded-full flex items-center justify-center">
+                  <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-1 bg-violet-500 rounded-full flex items-center justify-center">
                     <span className="text-[10px] font-bold text-white">
                       {unreadCount > 9 ? "9+" : unreadCount}
                     </span>

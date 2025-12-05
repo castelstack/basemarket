@@ -77,7 +77,7 @@ export default function EditPollDialog({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className='bg-black/95 backdrop-blur-xl border-white/10 text-white max-w-lg'>
         <DialogHeader>
-          <DialogTitle className='text-xl sm:text-2xl font-bold bg-gradient-to-r from-violet-400 to-pink-400 bg-clip-text text-transparent flex items-center gap-2'>
+          <DialogTitle className='text-xl font-bold text-white'>
             Edit Poll
           </DialogTitle>
           <DialogDescription className='text-gray-400'>
@@ -126,7 +126,8 @@ export default function EditPollDialog({
             <Button
               onClick={handleSubmit}
               disabled={updatePollMutation.isPending || !title.trim() || !description.trim()}
-              className='flex-1 bg-gradient-to-r from-violet-500 to-pink-500 hover:from-violet-600 hover:to-pink-600'
+              variant="gradient"
+              className='flex-1'
             >
               {updatePollMutation.isPending ? (
                 <>
