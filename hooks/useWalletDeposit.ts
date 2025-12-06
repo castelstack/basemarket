@@ -411,6 +411,9 @@ export function useWalletDeposit(
           (d.transactionHash as `0x${string}`) ||
           (d.hash as `0x${string}`) ||
           (d.txHash as `0x${string}`) ||
+          (d.transahash as `0x${string}`) ||
+          (d.transactionHashList as `0x${string}`[])?.[0] ||
+          (d.transactionHashes as `0x${string}`[])?.[0] ||
           (
             d.transactionReceipts as Array<{ transactionHash?: `0x${string}` }>
           )?.[0]?.transactionHash
@@ -466,9 +469,16 @@ export function useWalletDeposit(
           onchainKitSuccessHandled.current = false;
           setOnchainKitTxHash(txHash);
         } else if (keys.length > 0 && !onchainKitTxHash) {
-          // DEBUG: Show what keys are available
-          toast.warning(`${status.statusName} keys: ${keys.join(", ")}`, {
-            duration: 5000,
+          // DEBUG: Show keys and their values
+          const d = status.statusData as Record<string, unknown>;
+          const keyValues = keys.map((k) => {
+            const v = d[k];
+            if (typeof v === "string") return `${k}:${v.slice(0, 15)}`;
+            if (Array.isArray(v)) return `${k}:[${v.length}]`;
+            return `${k}:${typeof v}`;
+          });
+          toast.warning(`${status.statusName}: ${keyValues.join(", ")}`, {
+            duration: 8000,
           });
         }
       }
