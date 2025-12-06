@@ -15,15 +15,19 @@ import type { LifecycleStatus } from "@coinbase/onchainkit/transaction";
 import { useAuthStore } from "@/stores/authStore";
 
 // USDC contract address on Base mainnet
-const USDC_ADDRESS_MAINNET = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913" as const;
+const USDC_ADDRESS_MAINNET =
+  "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913" as const;
 // USDC contract address on Base Sepolia
-const USDC_ADDRESS_SEPOLIA = "0x036CbD53842c5426634e7929541eC2318f3dCF7e" as const;
+const USDC_ADDRESS_SEPOLIA =
+  "0x036CbD53842c5426634e7929541eC2318f3dCF7e" as const;
 // Platform deposit address from env
-const DEPOSIT_ADDRESS = (process.env.NEXT_PUBLIC_DEPOSIT_ADDRESS || "0x0000000000000000000000000000000000000000") as `0x${string}`;
+const DEPOSIT_ADDRESS = (process.env.NEXT_PUBLIC_DEPOSIT_ADDRESS ||
+  "0x0000000000000000000000000000000000000000") as `0x${string}`;
 
 // Get expected chain ID from env
 const EXPECTED_CHAIN_ID = Number(process.env.NEXT_PUBLIC_CHAIN_ID) || 8453;
-const USDC_ADDRESS = EXPECTED_CHAIN_ID === 84532 ? USDC_ADDRESS_SEPOLIA : USDC_ADDRESS_MAINNET;
+const USDC_ADDRESS =
+  EXPECTED_CHAIN_ID === 84532 ? USDC_ADDRESS_SEPOLIA : USDC_ADDRESS_MAINNET;
 const CDP_NETWORK = EXPECTED_CHAIN_ID === 84532 ? "base-sepolia" : "base";
 
 // ERC20 ABI for transfer
@@ -77,7 +81,9 @@ export function useWalletDeposit(
   const hasInitiatedDeposit = useRef(false);
 
   // Track OnchainKit transaction hash for mobile wallet polling
-  const [onchainKitTxHash, setOnchainKitTxHash] = useState<`0x${string}` | null>(null);
+  const [onchainKitTxHash, setOnchainKitTxHash] = useState<
+    `0x${string}` | null
+  >(null);
   const onchainKitSuccessHandled = useRef(false);
 
   // Reset deposit tracking when disconnected or logged out
@@ -91,7 +97,11 @@ export function useWalletDeposit(
 
   // Poll for OnchainKit transaction receipt (fixes mobile wallet apps not sending callbacks)
   useEffect(() => {
-    if (!onchainKitTxHash || onchainKitSuccessHandled.current || !wagmiConfig) return;
+    if (!onchainKitTxHash || onchainKitSuccessHandled.current || !wagmiConfig)
+      return;
+
+    // DEBUG: Show polling started (remove in production)
+    toast.info("Polling for confirmation...", { duration: 3000 });
 
     let cancelled = false;
     const pollInterval = setInterval(async () => {
@@ -102,7 +112,11 @@ export function useWalletDeposit(
           hash: onchainKitTxHash,
         });
 
-        if (receipt && receipt.status === "success" && !onchainKitSuccessHandled.current) {
+        if (
+          receipt &&
+          receipt.status === "success" &&
+          !onchainKitSuccessHandled.current
+        ) {
           onchainKitSuccessHandled.current = true;
           clearInterval(pollInterval);
           toast.success("Deposit confirmed! Your balance will update shortly.");
@@ -147,7 +161,9 @@ export function useWalletDeposit(
       toast.success("Switched to Base network");
     } catch (err: any) {
       console.error("Network switch error:", err);
-      toast.error("Failed to switch network. Please switch manually in your wallet.");
+      toast.error(
+        "Failed to switch network. Please switch manually in your wallet."
+      );
     }
   }, [switchChain]);
 
@@ -163,7 +179,7 @@ export function useWalletDeposit(
   // Check if user has a smart account
   const smartAccount = currentUser?.evmSmartAccounts?.[0];
   const isSmartWallet = !!smartAccount;
-console.log("isSmartWallet:", isSmartWallet);
+  console.log("isSmartWallet:", isSmartWallet);
   // Wagmi sendTransaction hook for EOA wallets
   const {
     sendTransaction,
@@ -177,22 +193,42 @@ console.log("isSmartWallet:", isSmartWallet);
     useWaitForTransactionReceipt({
       hash: depositTxHash,
     });
-console.log("isDepositPending:", depositTxHash, "isDepositConfirming:", isDepositConfirming, "isDepositSuccess:", isDepositSuccess);
+  console.log(
+    "isDepositPending:",
+    depositTxHash,
+    "isDepositConfirming:",
+    isDepositConfirming,
+    "isDepositSuccess:",
+    isDepositSuccess
+  );
   // Computed deposit loading state (includes OnchainKit polling)
-  const isPollingOnchainKit = !!onchainKitTxHash && !onchainKitSuccessHandled.current;
+  const isPollingOnchainKit =
+    !!onchainKitTxHash && !onchainKitSuccessHandled.current;
   const isDepositing = isSmartWallet
     ? cdpStatus === "pending"
     : isDepositPending || isDepositConfirming || isPollingOnchainKit;
 
   // Handle EOA deposit transaction success
   useEffect(() => {
-    if (!isSmartWallet && isDepositSuccess && depositTxHash && hasInitiatedDeposit.current && isAuthenticated) {
+    if (
+      !isSmartWallet &&
+      isDepositSuccess &&
+      depositTxHash &&
+      hasInitiatedDeposit.current &&
+      isAuthenticated
+    ) {
       toast.success("Deposit confirmed! Your balance will update shortly.");
       setAmount(0);
       hasInitiatedDeposit.current = false;
       options?.onSuccess?.();
     }
-  }, [isSmartWallet, isDepositSuccess, depositTxHash, isAuthenticated, options]);
+  }, [
+    isSmartWallet,
+    isDepositSuccess,
+    depositTxHash,
+    isAuthenticated,
+    options,
+  ]);
 
   // Handle EOA deposit error
   useEffect(() => {
@@ -220,7 +256,13 @@ console.log("isDepositPending:", depositTxHash, "isDepositConfirming:", isDeposi
 
   // Handle CDP smart wallet success
   useEffect(() => {
-    if (isSmartWallet && cdpStatus === "success" && cdpData && hasInitiatedDeposit.current && isAuthenticated) {
+    if (
+      isSmartWallet &&
+      cdpStatus === "success" &&
+      cdpData &&
+      hasInitiatedDeposit.current &&
+      isAuthenticated
+    ) {
       toast.success("Deposit confirmed! Your balance will update shortly.");
       setAmount(0);
       hasInitiatedDeposit.current = false;
@@ -230,7 +272,12 @@ console.log("isDepositPending:", depositTxHash, "isDepositConfirming:", isDeposi
 
   // Handle CDP smart wallet error
   useEffect(() => {
-    if (isSmartWallet && cdpStatus === "error" && cdpError && hasInitiatedDeposit.current) {
+    if (
+      isSmartWallet &&
+      cdpStatus === "error" &&
+      cdpError &&
+      hasInitiatedDeposit.current
+    ) {
       console.error("CDP Deposit error:", cdpError);
       const errorMessage = cdpError?.message || "Transaction failed";
       hasInitiatedDeposit.current = false;
@@ -323,18 +370,71 @@ console.log("isDepositPending:", depositTxHash, "isDepositConfirming:", isDeposi
         data: transferData,
       });
     }
-  }, [amount, isSmartWallet, isWrongNetwork, smartAccount, sendUserOperation, sendTransaction, switchChain]);
+  }, [
+    amount,
+    isSmartWallet,
+    isWrongNetwork,
+    smartAccount,
+    sendUserOperation,
+    sendTransaction,
+    switchChain,
+  ]);
 
   // Handle OnchainKit transaction status (with polling fallback for mobile wallets)
   const handleOnchainStatus = useCallback(
     (status: LifecycleStatus) => {
       console.log("OnchainKit status:", status);
+      console.log(
+        "OnchainKit statusData:",
+        JSON.stringify(status.statusData, null, 2)
+      );
+
+      // DEBUG: Show status in toast for mobile debugging (remove in production)
+      toast.info(`Status: ${status.statusName}`, { duration: 3000 });
+
+      // Try to capture transaction hash from multiple possible property names
+      // Mobile wallets may return the hash in different formats
+      const extractTxHash = (
+        data: unknown
+      ): `0x${string}` | undefined => {
+        if (!data || typeof data !== "object") return undefined;
+        const d = data as Record<string, unknown>;
+        return (
+          (d.transactionHash as `0x${string}`) ||
+          (d.hash as `0x${string}`) ||
+          (d.txHash as `0x${string}`) ||
+          ((d.transactionReceipts as Array<{ transactionHash?: `0x${string}` }>)?.[0]?.transactionHash)
+        );
+      };
 
       // Capture transaction hash when available (for mobile wallet polling)
       if (status.statusName === "transactionPending") {
-        const txHash = (status.statusData as { transactionHash?: `0x${string}` })?.transactionHash;
+        const txHash = extractTxHash(status.statusData);
         if (txHash) {
           console.log("Captured tx hash for polling:", txHash);
+          // DEBUG: Show hash captured (remove in production)
+          toast.info(`Hash captured: ${txHash.slice(0, 10)}...`, { duration: 5000 });
+          onchainKitSuccessHandled.current = false;
+          setOnchainKitTxHash(txHash);
+        } else {
+          console.warn(
+            "No tx hash found in transactionPending status:",
+            status.statusData
+          );
+          // DEBUG: Show keys available in statusData (remove in production)
+          const keys = status.statusData ? Object.keys(status.statusData as object) : [];
+          toast.warning(`No hash found. Keys: ${keys.join(", ") || "none"}`, { duration: 5000 });
+        }
+      }
+
+      // Also try to capture hash from other statuses that might contain it
+      if (
+        status.statusName === "transactionLegacyExecuted" ||
+        status.statusName === "buildingTransaction"
+      ) {
+        const txHash = extractTxHash(status.statusData);
+        if (txHash && !onchainKitTxHash) {
+          console.log("Captured tx hash from", status.statusName, ":", txHash);
           onchainKitSuccessHandled.current = false;
           setOnchainKitTxHash(txHash);
         }
@@ -357,7 +457,7 @@ console.log("isDepositPending:", depositTxHash, "isDepositConfirming:", isDeposi
         options?.onError?.(errorMessage);
       }
     },
-    [options]
+    [options, onchainKitTxHash]
   );
 
   return {
