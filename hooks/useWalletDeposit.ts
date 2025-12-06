@@ -8,11 +8,21 @@ import {
   useConfig,
 } from "wagmi";
 import { useSendUserOperation, useCurrentUser } from "@coinbase/cdp-hooks";
-import { parseUnits, encodeFunctionData } from "viem";
-import { getTransactionReceipt } from "wagmi/actions";
+import { parseUnits, encodeFunctionData, createPublicClient, http } from "viem";
+import { base, baseSepolia } from "viem/chains";
 import { toast } from "sonner";
 import type { LifecycleStatus } from "@coinbase/onchainkit/transaction";
 import { useAuthStore } from "@/stores/authStore";
+
+// Public RPC clients for direct polling (bypasses wagmi config issues on mobile)
+const baseClient = createPublicClient({
+  chain: base,
+  transport: http("https://mainnet.base.org"),
+});
+const baseSepoliaClient = createPublicClient({
+  chain: baseSepolia,
+  transport: http("https://sepolia.base.org"),
+});
 
 // USDC contract address on Base mainnet
 const USDC_ADDRESS_MAINNET =
@@ -122,7 +132,9 @@ export function useWalletDeposit(
       }
 
       try {
-        const receipt = await getTransactionReceipt(wagmiConfig, {
+        // Use public RPC directly (bypasses wagmi config issues on mobile)
+        const publicClient = EXPECTED_CHAIN_ID === 84532 ? baseSepoliaClient : baseClient;
+        const receipt = await publicClient.getTransactionReceipt({
           hash: onchainKitTxHash,
         });
 
