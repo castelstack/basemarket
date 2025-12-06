@@ -148,8 +148,9 @@ export function useWalletDeposit(
           options?.onError?.("Transaction reverted");
         }
       } catch (err: any) {
-        // DEBUG: Show polling attempt (transaction not yet mined)
-        toast.info(`Waiting for tx...`, { duration: 1500 });
+        // DEBUG: Show actual error message
+        const errMsg = err?.shortMessage || err?.message || "unknown error";
+        toast.error(`Err: ${errMsg.slice(0, 60)}`, { duration: 3000 });
       }
     }, 2000); // Poll every 2 seconds
 
