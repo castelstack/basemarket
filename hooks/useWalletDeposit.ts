@@ -99,11 +99,16 @@ export function useWalletDeposit(
 
   // Poll for OnchainKit transaction receipt (fixes mobile wallet apps not sending callbacks)
   useEffect(() => {
-    if (!onchainKitTxHash || onchainKitSuccessHandled.current || !wagmiConfig)
+    // DEBUG: Show effect triggered
+    console.log("Polling effect triggered, hash:", onchainKitTxHash, "handled:", onchainKitSuccessHandled.current);
+
+    if (!onchainKitTxHash || onchainKitSuccessHandled.current || !wagmiConfig) {
+      console.log("Polling skipped - conditions not met");
       return;
+    }
 
     // DEBUG: Show polling started (remove in production)
-    toast.info("Polling for confirmation...", { duration: 3000 });
+    toast.info(`Polling tx: ${onchainKitTxHash.slice(0, 10)}...`, { duration: 3000 });
 
     let cancelled = false;
     const pollInterval = setInterval(async () => {
@@ -113,6 +118,11 @@ export function useWalletDeposit(
         const receipt = await getTransactionReceipt(wagmiConfig, {
           hash: onchainKitTxHash,
         });
+
+        // DEBUG: Show receipt status
+        if (receipt) {
+          toast.info(`Receipt: ${receipt.status}`, { duration: 2000 });
+        }
 
         if (
           receipt &&
@@ -132,9 +142,9 @@ export function useWalletDeposit(
           setOnchainKitTxHash(null);
           options?.onError?.("Transaction reverted");
         }
-      } catch (err) {
-        // Transaction not yet mined, continue polling
-        console.log("Polling for tx receipt...", onchainKitTxHash);
+      } catch (err: any) {
+        // DEBUG: Show polling error
+        console.log("Polling for tx receipt...", onchainKitTxHash, err?.message);
       }
     }, 2000); // Poll every 2 seconds
 
