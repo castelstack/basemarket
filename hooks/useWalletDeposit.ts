@@ -447,15 +447,29 @@ export function useWalletDeposit(
       }
 
       // Also try to capture hash from other statuses that might contain it
-      if (
-        status.statusName === "transactionLegacyExecuted" ||
-        status.statusName === "buildingTransaction"
-      ) {
+      const hashStatuses = [
+        "transactionLegacyExecuted",
+        "transactionExecutionLegacy",
+        "buildingTransaction",
+      ];
+      if (hashStatuses.includes(status.statusName)) {
         const txHash = extractTxHash(status.statusData);
+        const keys = status.statusData
+          ? Object.keys(status.statusData as object)
+          : [];
+
         if (txHash && !onchainKitTxHash) {
           console.log("Captured tx hash from", status.statusName, ":", txHash);
+          toast.info(`Hash from ${status.statusName}: ${txHash.slice(0, 10)}...`, {
+            duration: 5000,
+          });
           onchainKitSuccessHandled.current = false;
           setOnchainKitTxHash(txHash);
+        } else if (keys.length > 0 && !onchainKitTxHash) {
+          // DEBUG: Show what keys are available
+          toast.warning(`${status.statusName} keys: ${keys.join(", ")}`, {
+            duration: 5000,
+          });
         }
       }
 
