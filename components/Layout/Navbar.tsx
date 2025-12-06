@@ -350,7 +350,6 @@ export default function Navbar() {
                   <ConnectWallet
                     className="!bg-gradient-to-r !from-violet-500 !to-indigo-500 hover:!from-violet-600 hover:!to-indigo-600 !text-white !font-semibold !px-4 !py-2.5 !rounded-xl !text-sm"
                     // text="Connect"
-                    
                   />
                 </Wallet>
               )}
@@ -395,19 +394,13 @@ export default function Navbar() {
             {isWalletConnected && user ? (
               <Wallet>
                 <ConnectWallet className="!bg-transparent !p-0 !min-w-0">
-                  <Avatar className="!w-9 !h-9 rounded-xl" />
+                  <Avatar className="!w-max !h-10 rounded-xl" />
                 </ConnectWallet>
-                <WalletDropdown className="!bg-black/95 !backdrop-blur-xl !border !border-white/10 !rounded-2xl !p-2 !my-0 min-w-[280px] !max-h-[70vh] !overflow-y-auto">
-                  <Identity
-                    className="px-3 py-3 mb-2 rounded-xl bg-gradient-to-r from-violet-500/10 to-indigo-500/10 border border-violet-500/20"
-                    hasCopyAddressOnClick
-                  >
-                    <div className="flex items-center gap-3">
-                      <Avatar className="w-12 h-12 rounded-xl" />
-                      <div className="flex-1 min-w-0">
-                        <Name className="text-sm font-semibold text-white block truncate" />
-                      </div>
-                    </div>
+                <WalletDropdown className="!bg-black/95 !backdrop-blur-xl !border !w-full !border-white/10 !rounded-2xl !p-2 !my-0 !overflow-y-auto !z-[9999]">
+                  <Identity className="px-3 py-3 mb-2" hasCopyAddressOnClick>
+                    <Avatar />
+                    <Name />
+                    <EthBalance />
                   </Identity>
 
                   {/* Profile Link */}
@@ -416,7 +409,7 @@ export default function Navbar() {
                     className="flex items-center gap-3 px-3 py-2.5 text-gray-300 hover:text-white hover:bg-violet-500/10 rounded-xl transition-all"
                   >
                     <User className="w-4 h-4" />
-                    <span>Profile</span>
+                    <span>Profilex</span>
                   </Link>
 
                   <WalletDropdownBasename className="!px-3 !py-2.5 !text-gray-300 hover:!text-white hover:!bg-violet-500/10 !rounded-xl !transition-all" />
@@ -428,7 +421,7 @@ export default function Navbar() {
 
                   <div className="h-px bg-white/5 my-2" />
                   <WalletDropdownDisconnect
-                    className="!w-full !justify-start !px-3 !py-2.5 !text-red-400 hover:!text-red-300 hover:!bg-red-500/10 !rounded-xl !transition-all"
+                    className="!w-full mb-[5rem] !justify-start !px-3 !py-2.5 !text-red-400 hover:!text-red-300 hover:!bg-red-500/10 !rounded-xl !transition-all"
                     text="Disconnect"
                   />
                 </WalletDropdown>
@@ -436,8 +429,8 @@ export default function Navbar() {
             ) : !isWalletConnected ? (
               <Wallet>
                 <ConnectWallet
-                  className="!bg-gradient-to-r !from-violet-500 !to-indigo-500 !text-white !font-medium !px-3 !py-1.5 !rounded-lg !text-xs"
-                  disconnectedLabel="Connect"
+                  className="!bg-gradient-to-r !from-violet-500 !to-indigo-500 !text-white !font-bold !px-2 !py-3 !rounded-lg !text-xs"
+                  disconnectedLabel="Connect Wallet"
                 />
               </Wallet>
             ) : !isWrongNetwork && !showSignIn ? (
