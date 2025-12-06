@@ -51,9 +51,11 @@ import {
   TransactionStatus,
   TransactionStatusLabel,
   TransactionStatusAction,
+  TransactionSponsor,
 } from "@coinbase/onchainkit/transaction";
 import numeral from "numeral";
 import { useAccount } from "wagmi";
+const EXPECTED_CHAIN_ID = Number(process.env.NEXT_PUBLIC_CHAIN_ID) || 8453;
 
 export default function WalletPage() {
   const { user } = useAuthStore();
@@ -511,11 +513,16 @@ export default function WalletPage() {
             </div>
 
             {depositAmount && depositAmount > 0 && (
-              <Transaction calls={depositCalls} onStatus={handleOnchainStatus}>
+              <Transaction
+                chainId={EXPECTED_CHAIN_ID}
+                calls={depositCalls}
+                onStatus={handleOnchainStatus}
+              >
                 <TransactionButton
                   className="w-full bg-gradient-to-r from-violet-500 to-indigo-500 hover:from-violet-600 hover:to-indigo-600 font-bold rounded-xl py-3"
                   text="Deposit USDC"
                 />
+                <TransactionSponsor />
                 <TransactionStatus>
                   <TransactionStatusLabel />
                   <TransactionStatusAction />

@@ -386,7 +386,9 @@ export function useWalletDeposit(
       console.log("OnchainKit status:", status);
       console.log(
         "OnchainKit statusData:",
-        JSON.stringify(status.statusData, null, 2)
+        JSON.stringify(status.statusData, (_, v) =>
+          typeof v === "bigint" ? v.toString() : v
+        , 2)
       );
 
       // DEBUG: Only show toast for actual transaction activity (remove in production)

@@ -1,19 +1,10 @@
 "use client";
 
-import { CONTESTANTS } from "@/constants/contestants";
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useForm, useFieldArray } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { useAuthStore } from "@/stores/authStore";
-import { usePollById, useUpdatePoll } from "@/lib/polls";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -21,7 +12,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { usePollById, useUpdatePoll } from "@/lib/polls";
+import { useAuthStore } from "@/stores/authStore";
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
+  AlertTriangle,
   ArrowLeft,
   Calendar,
   Clock,
@@ -31,11 +27,14 @@ import {
   Minus,
   Plus,
   Save,
-  AlertTriangle,
   Sparkles,
 } from "lucide-react";
-import { toast } from "sonner";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { useFieldArray, useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
 
 const editPollSchema = z.object({
   title: z.string().min(10, "Title must be at least 10 characters"),
