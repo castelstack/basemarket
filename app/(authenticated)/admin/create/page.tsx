@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { CONTESTANTS } from "@/constants/contestants";
 import { POLL_CATEGORIES } from "@/constants/categories";
 import { useState, useEffect } from "react";
@@ -477,7 +478,7 @@ export default function CreatePollPage() {
 
             <div className="flex justify-between pt-3 border-t border-white/[0.05]">
               <span className="text-xs text-gray-400 bg-emerald-500/10 px-2 py-1 rounded">
-                Pool: <span className="text-emerald-400 font-bold">$0</span>
+                Pool: <span className="text-emerald-400 font-bold inline-flex items-center gap-1"><Image src="/usdc.svg" alt="USDC" width={12} height={12} />0</span>
               </span>
               <span className="text-xs text-gray-400 bg-violet-500/10 px-2 py-1 rounded">
                 0 participants

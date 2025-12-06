@@ -94,7 +94,6 @@ export default function WalletPage() {
     amount: depositAmount,
     setAmount: setDepositAmount,
     isDepositing,
-    handleDeposit,
     depositCalls,
     handleOnchainStatus,
   } = useWalletDeposit({
@@ -454,7 +453,7 @@ export default function WalletPage() {
         onOpenChange={(open) => {
           if (!isDepositing) {
             setIsDepositDialogOpen(open);
-            if (!open) setDepositAmount(0);
+            if (!open) setDepositAmount("");
           }
         }}
       >
@@ -476,7 +475,7 @@ export default function WalletPage() {
                 min="0"
                 step="0.01"
                 value={depositAmount}
-                onChange={(e) => setDepositAmount(parseFloat(e.target.value))}
+                onChange={(e) => setDepositAmount(e.target.value)}
                 placeholder="Enter amount"
                 disabled={isDepositing}
                 className="h-11 bg-white/[0.03] border-white/[0.06] text-white rounded-xl"
@@ -491,7 +490,7 @@ export default function WalletPage() {
                     key={amount}
                     variant="outline"
                     size="sm"
-                    onClick={() => setDepositAmount(amount)}
+                    onClick={() => setDepositAmount(amount.toString())}
                     disabled={isDepositing}
                     className="border-white/10 text-white hover:bg-white/10 rounded-lg text-xs h-9 inline-flex items-center gap-1"
                   >
@@ -512,13 +511,16 @@ export default function WalletPage() {
               </div>
             </div>
 
-            {depositAmount && depositAmount > 0 && (
+            {
               <Transaction
                 chainId={EXPECTED_CHAIN_ID}
                 calls={depositCalls}
                 onStatus={handleOnchainStatus}
               >
                 <TransactionButton
+                  disabled={
+                    !depositAmount || isDepositing || parseFloat(depositAmount) <= 0
+                  }
                   className="w-full bg-gradient-to-r from-violet-500 to-indigo-500 hover:from-violet-600 hover:to-indigo-600 font-bold rounded-xl py-3"
                   text="Deposit USDC"
                 />
@@ -528,35 +530,7 @@ export default function WalletPage() {
                   <TransactionStatusAction />
                 </TransactionStatus>
               </Transaction>
-            )}
-
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setIsDepositDialogOpen(false);
-                  setDepositAmount(0);
-                }}
-                disabled={isDepositing}
-                className="flex-1 h-11 border-white/10 text-gray-400 hover:text-white hover:bg-white/10 rounded-xl"
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={handleDeposit}
-                disabled={!depositAmount || isDepositing || depositAmount <= 0}
-                className="flex-1 h-11 bg-gradient-to-r from-violet-500 to-indigo-500 hover:from-violet-600 hover:to-indigo-600 font-bold rounded-xl"
-              >
-                {isDepositing ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Processing...
-                  </>
-                ) : (
-                  "Deposit"
-                )}
-              </Button>
-            </div>
+            }
           </div>
         </DialogContent>
       </Dialog>

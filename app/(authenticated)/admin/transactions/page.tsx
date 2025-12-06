@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import {
   useAdminTransactions,
   useAdminPendingWithdrawals,
@@ -186,7 +187,7 @@ export default function AdminTransactionsPage() {
         </div>
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-4 gap-2 mb-6">
+        <div className="grid sm:grid-cols-4 grid-cols-2 gap-2 mb-6">
           <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.06] text-center">
             <CreditCard className="w-4 h-4 text-violet-400 mx-auto mb-1" />
             <p className="text-lg font-bold text-white">{totalDocs}</p>
@@ -227,8 +228,9 @@ export default function AdminTransactionsPage() {
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
                       <ArrowUpRight className="w-4 h-4 text-amber-400" />
-                      <span className="text-white font-bold">
-                        ${numeral(tx.amount).format("0,0.00")}
+                      <span className="text-white font-bold inline-flex items-center gap-1">
+                        <Image src="/usdc.svg" alt="USDC" width={14} height={14} />
+                        {numeral(tx.amount).format("0,0.00")}
                       </span>
                     </div>
                     <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30 text-xs">
@@ -341,8 +343,9 @@ export default function AdminTransactionsPage() {
                           <h3 className="text-white font-semibold capitalize text-sm">
                             {tx.type}
                           </h3>
-                          <p className="text-lg font-bold text-violet-400">
-                            ${numeral(tx.amount).format("0,0.00")}
+                          <p className="text-lg font-bold text-violet-400 inline-flex items-center gap-1">
+                            <Image src="/usdc.svg" alt="USDC" width={16} height={16} />
+                            {numeral(tx.amount).format("0,0.00")}
                           </p>
                         </div>
                       </div>

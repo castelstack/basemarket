@@ -5,10 +5,14 @@ import {
   useAccount,
   useChainId,
   useSwitchChain,
-  useConfig,
 } from "wagmi";
 import { useSendUserOperation, useCurrentUser } from "@coinbase/cdp-hooks";
-import { parseUnits, encodeFunctionData, createPublicClient, http } from "viem";
+import {
+  parseUnits,
+  encodeFunctionData,
+  createPublicClient,
+  http,
+} from "viem";
 import { base, baseSepolia } from "viem/chains";
 import { toast } from "sonner";
 import type { LifecycleStatus } from "@coinbase/onchainkit/transaction";
@@ -60,8 +64,8 @@ interface UseWalletDepositOptions {
 }
 
 interface UseWalletDepositReturn {
-  amount: number;
-  setAmount: (amount: number) => void;
+  amount: string;
+  setAmount: (amount: string) => void;
   isDepositing: boolean;
   handleDeposit: () => void;
   depositCalls: Array<{
@@ -79,13 +83,12 @@ interface UseWalletDepositReturn {
 export function useWalletDeposit(
   options?: UseWalletDepositOptions
 ): UseWalletDepositReturn {
-  const [amount, setAmount] = useState(0);
+  const [amount, setAmount] = useState("");
   const { address: userAddress, isConnected } = useAccount();
   const { user } = useAuthStore();
   const isAuthenticated = !!user;
   const currentChainId = useChainId();
   const { switchChain, isPending: isSwitchingNetwork } = useSwitchChain();
-  const wagmiConfig = useConfig();
 
   // Track if we initiated a deposit (prevents stale state from showing toasts)
   const hasInitiatedDeposit = useRef(false);
@@ -94,7 +97,6 @@ export function useWalletDeposit(
   const [onchainKitTxHash, setOnchainKitTxHash] = useState<
     `0x${string}` | null
   >(null);
-  const [callsId, setCallsId] = useState<string | null>(null);
   const onchainKitSuccessHandled = useRef(false);
 
   // Reset deposit tracking when disconnected or logged out
@@ -102,44 +104,29 @@ export function useWalletDeposit(
     if (!isConnected || !isAuthenticated) {
       hasInitiatedDeposit.current = false;
       setOnchainKitTxHash(null);
-      setCallsId(null);
       onchainKitSuccessHandled.current = false;
     }
   }, [isConnected, isAuthenticated]);
 
   // Poll for OnchainKit transaction receipt (fixes mobile wallet apps not sending callbacks)
   useEffect(() => {
-    // DEBUG: Show effect triggered
-    console.log("Polling effect triggered, hash:", onchainKitTxHash, "handled:", onchainKitSuccessHandled.current);
-
-    if (!onchainKitTxHash || onchainKitSuccessHandled.current || !wagmiConfig) {
-      console.log("Polling skipped - conditions not met");
+    if (!onchainKitTxHash || onchainKitSuccessHandled.current) {
       return;
     }
 
-    // DEBUG: Show polling started (remove in production)
-    toast.info(`Polling tx: ${onchainKitTxHash.slice(0, 10)}...`, { duration: 3000 });
-
     let cancelled = false;
-    let pollCount = 0;
     const pollInterval = setInterval(async () => {
-      pollCount++;
-      toast.info(`Poll #${pollCount}`, { duration: 1000 });
-
       if (cancelled || onchainKitSuccessHandled.current) {
-        toast.warning(`Polling stopped: cancelled=${cancelled}, handled=${onchainKitSuccessHandled.current}`);
         return;
       }
 
       try {
         // Use public RPC directly (bypasses wagmi config issues on mobile)
-        const publicClient = EXPECTED_CHAIN_ID === 84532 ? baseSepoliaClient : baseClient;
+        const publicClient =
+          EXPECTED_CHAIN_ID === 84532 ? baseSepoliaClient : baseClient;
         const receipt = await publicClient.getTransactionReceipt({
           hash: onchainKitTxHash,
         });
-
-        // DEBUG: Show receipt status
-        toast.info(`Receipt found: ${receipt?.status || "null"}`, { duration: 2000 });
 
         if (
           receipt &&
@@ -149,7 +136,7 @@ export function useWalletDeposit(
           onchainKitSuccessHandled.current = true;
           clearInterval(pollInterval);
           toast.success("Deposit confirmed! Your balance will update shortly.");
-          setAmount(0);
+          setAmount("");
           setOnchainKitTxHash(null);
           options?.onSuccess?.();
         } else if (receipt && receipt.status === "reverted") {
@@ -159,12 +146,10 @@ export function useWalletDeposit(
           setOnchainKitTxHash(null);
           options?.onError?.("Transaction reverted");
         }
-      } catch (err: any) {
-        // DEBUG: Show actual error message
-        const errMsg = err?.shortMessage || err?.message || "unknown error";
-        toast.error(`Err: ${errMsg.slice(0, 60)}`, { duration: 3000 });
+      } catch {
+        // Transaction not yet mined, continue polling
       }
-    }, 2000); // Poll every 2 seconds
+    }, 2000);
 
     // Cleanup and timeout after 5 minutes
     const timeout = setTimeout(() => {
@@ -179,59 +164,7 @@ export function useWalletDeposit(
       clearInterval(pollInterval);
       clearTimeout(timeout);
     };
-  }, [onchainKitTxHash, options, wagmiConfig]);
-
-  // Poll using wallet_getCallsStatus for mobile wallets (more reliable than tx hash)
-  useEffect(() => {
-    if (!callsId || onchainKitSuccessHandled.current || !wagmiConfig) return;
-
-    // DEBUG: Show polling started (remove in production)
-    toast.info("Polling via wallet_getCallsStatus...", { duration: 3000 });
-
-    let cancelled = false;
-    const pollInterval = setInterval(async () => {
-      if (cancelled || onchainKitSuccessHandled.current) return;
-
-      try {
-        const client = wagmiConfig.getClient();
-        const status = await client.request({
-          method: "wallet_getCallsStatus" as any,
-          params: [callsId] as any,
-        });
-
-        console.log("wallet_getCallsStatus result:", status);
-
-        // Check if transaction is complete
-        const statusObj = status as { status?: number; receipts?: Array<{ transactionHash?: string }> };
-        if (statusObj.status === 200 || (statusObj.receipts && statusObj.receipts.length > 0)) {
-          onchainKitSuccessHandled.current = true;
-          clearInterval(pollInterval);
-          toast.success("Deposit confirmed! Your balance will update shortly.");
-          setAmount(0);
-          setCallsId(null);
-          setOnchainKitTxHash(null);
-          options?.onSuccess?.();
-        }
-      } catch (err) {
-        // Method may not be supported or transaction not ready
-        console.log("Polling wallet_getCallsStatus...", err);
-      }
-    }, 2000);
-
-    // Cleanup and timeout after 5 minutes
-    const timeout = setTimeout(() => {
-      clearInterval(pollInterval);
-      if (!onchainKitSuccessHandled.current) {
-        setCallsId(null);
-      }
-    }, 5 * 60 * 1000);
-
-    return () => {
-      cancelled = true;
-      clearInterval(pollInterval);
-      clearTimeout(timeout);
-    };
-  }, [callsId, options, wagmiConfig]);
+  }, [onchainKitTxHash, options]);
 
   // Check if on wrong network
   const isWrongNetwork = currentChainId !== EXPECTED_CHAIN_ID;
@@ -241,8 +174,7 @@ export function useWalletDeposit(
     try {
       await switchChain({ chainId: EXPECTED_CHAIN_ID });
       toast.success("Switched to Base network");
-    } catch (err: any) {
-      console.error("Network switch error:", err);
+    } catch {
       toast.error(
         "Failed to switch network. Please switch manually in your wallet."
       );
@@ -261,7 +193,7 @@ export function useWalletDeposit(
   // Check if user has a smart account
   const smartAccount = currentUser?.evmSmartAccounts?.[0];
   const isSmartWallet = !!smartAccount;
-  console.log("isSmartWallet:", isSmartWallet);
+
   // Wagmi sendTransaction hook for EOA wallets
   const {
     sendTransaction,
@@ -275,14 +207,7 @@ export function useWalletDeposit(
     useWaitForTransactionReceipt({
       hash: depositTxHash,
     });
-  console.log(
-    "isDepositPending:",
-    depositTxHash,
-    "isDepositConfirming:",
-    isDepositConfirming,
-    "isDepositSuccess:",
-    isDepositSuccess
-  );
+
   // Computed deposit loading state (includes OnchainKit polling)
   const isPollingOnchainKit =
     !!onchainKitTxHash && !onchainKitSuccessHandled.current;
@@ -300,22 +225,15 @@ export function useWalletDeposit(
       isAuthenticated
     ) {
       toast.success("Deposit confirmed! Your balance will update shortly.");
-      setAmount(0);
+      setAmount("");
       hasInitiatedDeposit.current = false;
       options?.onSuccess?.();
     }
-  }, [
-    isSmartWallet,
-    isDepositSuccess,
-    depositTxHash,
-    isAuthenticated,
-    options,
-  ]);
+  }, [isSmartWallet, isDepositSuccess, depositTxHash, isAuthenticated, options]);
 
   // Handle EOA deposit error
   useEffect(() => {
     if (!isSmartWallet && depositError && hasInitiatedDeposit.current) {
-      console.error("Deposit error:", depositError);
       const errorMessage = depositError?.message || "Transaction failed";
       hasInitiatedDeposit.current = false;
 
@@ -346,7 +264,7 @@ export function useWalletDeposit(
       isAuthenticated
     ) {
       toast.success("Deposit confirmed! Your balance will update shortly.");
-      setAmount(0);
+      setAmount("");
       hasInitiatedDeposit.current = false;
       options?.onSuccess?.();
     }
@@ -360,7 +278,6 @@ export function useWalletDeposit(
       cdpError &&
       hasInitiatedDeposit.current
     ) {
-      console.error("CDP Deposit error:", cdpError);
       const errorMessage = cdpError?.message || "Transaction failed";
       hasInitiatedDeposit.current = false;
       toast.error(errorMessage.slice(0, 100));
@@ -370,10 +287,10 @@ export function useWalletDeposit(
 
   // OnchainKit Transaction calls for USDC transfer
   const depositCalls = useMemo(() => {
-    if (!amount || amount <= 0 || !userAddress) return [];
+    const numAmount = parseFloat(amount);
+    if (!amount || isNaN(numAmount) || numAmount <= 0 || !userAddress) return [];
 
-    const depositAmount = amount;
-    const amountInUnits = parseUnits(depositAmount.toString(), 6);
+    const amountInUnits = parseUnits(amount, 6);
 
     return [
       {
@@ -389,13 +306,8 @@ export function useWalletDeposit(
 
   // Handle deposit - uses CDP for smart wallet, wagmi for EOA
   const handleDeposit = useCallback(async () => {
-    if (!amount) {
-      toast.error("Please enter an amount!");
-      return;
-    }
-
-    const depositAmount = amount;
-    if (isNaN(depositAmount) || depositAmount <= 0) {
+    const numAmount = parseFloat(amount);
+    if (!amount || isNaN(numAmount) || numAmount <= 0) {
       toast.error("Please enter a valid amount!");
       return;
     }
@@ -413,7 +325,7 @@ export function useWalletDeposit(
     }
 
     // USDC has 6 decimals
-    const amountInUnits = parseUnits(depositAmount.toString(), 6);
+    const amountInUnits = parseUnits(amount, 6);
 
     // Encode the ERC20 transfer call
     const transferData = encodeFunctionData({
@@ -438,10 +350,9 @@ export function useWalletDeposit(
               value: BigInt(0),
             },
           ],
-          useCdpPaymaster: true, // Gas sponsorship
+          useCdpPaymaster: true,
         });
       } catch (err: any) {
-        console.error("CDP transfer failed:", err);
         hasInitiatedDeposit.current = false;
         toast.error(err?.message || "Transfer failed");
       }
@@ -465,27 +376,7 @@ export function useWalletDeposit(
   // Handle OnchainKit transaction status (with polling fallback for mobile wallets)
   const handleOnchainStatus = useCallback(
     (status: LifecycleStatus) => {
-      console.log("OnchainKit status:", status);
-      console.log(
-        "OnchainKit statusData:",
-        JSON.stringify(status.statusData, (_, v) =>
-          typeof v === "bigint" ? v.toString() : v
-        , 2)
-      );
-
-      // DEBUG: Only show toast for actual transaction activity (remove in production)
-      const activeStatuses = [
-        "transactionApproved",
-        "transactionLegacyExecuted",
-        "success",
-        "error",
-      ];
-      if (activeStatuses.includes(status.statusName)) {
-        toast.info(`Status: ${status.statusName}`, { duration: 3000 });
-      }
-
-      // Try to capture transaction hash from multiple possible property names
-      // Mobile wallets may return the hash in different formats
+      // Extract transaction hash from status data
       const extractTxHash = (data: unknown): `0x${string}` | undefined => {
         if (!data || typeof data !== "object") return undefined;
         const d = data as Record<string, unknown>;
@@ -493,7 +384,6 @@ export function useWalletDeposit(
           (d.transactionHash as `0x${string}`) ||
           (d.hash as `0x${string}`) ||
           (d.txHash as `0x${string}`) ||
-          (d.transahash as `0x${string}`) ||
           (d.transactionHashList as `0x${string}`[])?.[0] ||
           (d.transactionHashes as `0x${string}`[])?.[0] ||
           (
@@ -502,85 +392,25 @@ export function useWalletDeposit(
         );
       };
 
-      // Extract callsId for wallet_getCallsStatus polling (mobile wallet fallback)
-      const extractCallsId = (data: unknown): string | undefined => {
-        if (!data || typeof data !== "object") return undefined;
-        const d = data as Record<string, unknown>;
-        return (d.id as string) || (d.callsId as string) || (d.batchId as string);
-      };
-
-      // Capture transaction hash or callsId when available (for mobile wallet polling)
+      // Capture transaction hash for polling (mobile wallet fallback)
       if (status.statusName === "transactionPending") {
         const txHash = extractTxHash(status.statusData);
-        const capturedCallsId = extractCallsId(status.statusData);
-        const keys = status.statusData
-          ? Object.keys(status.statusData as object)
-          : [];
-
-        if (txHash) {
-          console.log("Captured tx hash for polling:", txHash);
-          toast.info(`Hash captured: ${txHash.slice(0, 10)}...`, {
-            duration: 5000,
-          });
+        if (txHash && !onchainKitTxHash) {
           onchainKitSuccessHandled.current = false;
           setOnchainKitTxHash(txHash);
-        } else if (capturedCallsId) {
-          console.log("Captured callsId for polling:", capturedCallsId);
-          toast.info(`CallsId captured: ${capturedCallsId.slice(0, 10)}...`, {
-            duration: 5000,
-          });
-          onchainKitSuccessHandled.current = false;
-          setCallsId(capturedCallsId);
-        } else if (keys.length > 0) {
-          console.warn(
-            "No tx hash or callsId found in transactionPending status:",
-            status.statusData
-          );
-          toast.warning(`No hash/callsId. Keys: ${keys.join(", ")}`, {
-            duration: 5000,
-          });
         }
       }
 
-      // Also try to capture hash/callsId from other statuses
+      // Also try to capture hash from other statuses
       const hashStatuses = [
         "transactionLegacyExecuted",
         "transactionExecutionLegacy",
-        "buildingTransaction",
       ];
       if (hashStatuses.includes(status.statusName)) {
         const txHash = extractTxHash(status.statusData);
-        const capturedCallsId = extractCallsId(status.statusData);
-        const keys = status.statusData
-          ? Object.keys(status.statusData as object)
-          : [];
-
-        if (txHash && !onchainKitTxHash && !callsId) {
-          console.log("Captured tx hash from", status.statusName, ":", txHash);
-          toast.info(`Hash from ${status.statusName}: ${txHash.slice(0, 10)}...`, {
-            duration: 5000,
-          });
+        if (txHash && !onchainKitTxHash) {
           onchainKitSuccessHandled.current = false;
           setOnchainKitTxHash(txHash);
-        } else if (capturedCallsId && !onchainKitTxHash && !callsId) {
-          console.log("Captured callsId from", status.statusName, ":", capturedCallsId);
-          toast.info(`CallsId from ${status.statusName}: ${capturedCallsId.slice(0, 10)}...`, {
-            duration: 5000,
-          });
-          onchainKitSuccessHandled.current = false;
-          setCallsId(capturedCallsId);
-        } else if (keys.length > 0 && !onchainKitTxHash && !callsId) {
-          // DEBUG: Show keys and their values
-          const d = status.statusData as Record<string, unknown>;
-          const keyValues = keys.map((k) => {
-            const v = d[k];
-            if (typeof v === "string") return `${k}:${v.slice(0, 15)}`;
-            if (Array.isArray(v)) return `${k}:[${v.length}]`;
-            return `${k}:${typeof v}`;
-          });
-          toast.warning(`${status.statusName}: ${keyValues.join(", ")}`, {
-            duration: 8000,
-          });
         }
       }
 
@@ -588,14 +418,12 @@ export function useWalletDeposit(
         // Mark as handled to prevent polling from firing duplicate success
         onchainKitSuccessHandled.current = true;
         setOnchainKitTxHash(null);
-        setCallsId(null);
         toast.success("Deposit confirmed! Your balance will update shortly.");
-        setAmount(0);
+        setAmount("");
         options?.onSuccess?.();
       } else if (status.statusName === "error") {
         onchainKitSuccessHandled.current = true;
         setOnchainKitTxHash(null);
-        setCallsId(null);
         const errorMessage =
           (status.statusData as { message?: string })?.message ||
           "Transaction failed";
@@ -603,7 +431,7 @@ export function useWalletDeposit(
         options?.onError?.(errorMessage);
       }
     },
-    [options, onchainKitTxHash, callsId]
+    [options, onchainKitTxHash]
   );
 
   return {

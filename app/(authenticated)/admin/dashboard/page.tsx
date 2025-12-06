@@ -268,11 +268,11 @@ export default function AdminDashboardPage() {
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
                       <XAxis dataKey="date" stroke="#6b7280" tick={{ fill: "#6b7280", fontSize: 10 }} />
-                      <YAxis stroke="#6b7280" tick={{ fill: "#6b7280", fontSize: 10 }} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
+                      <YAxis stroke="#6b7280" tick={{ fill: "#6b7280", fontSize: 10 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
                       <Tooltip
                         contentStyle={{ backgroundColor: "#1f2937", border: "1px solid #374151", borderRadius: "8px" }}
                         labelStyle={{ color: "#e5e7eb" }}
-                        formatter={(value: any) => `$${value.toLocaleString()}`}
+                        formatter={(value: any) => [`${value.toLocaleString()} USDC`, "Revenue"]}
                       />
                       <Bar dataKey="revenue" fill="url(#colorRevenue)" radius={[4, 4, 0, 0]} name="Revenue" />
                     </BarChart>

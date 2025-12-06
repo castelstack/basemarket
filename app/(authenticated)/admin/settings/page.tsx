@@ -172,8 +172,8 @@ export default function PlatformSettingsPage() {
           {[
             { label: "Platform Fee", value: `${feesData?.data?.platformFeePercentage || 0}%`, icon: DollarSign, color: "text-emerald-400" },
             { label: "Withdrawal Fee", value: `${feesData?.data?.withdrawalFeePercentage || 0}%`, icon: Banknote, color: "text-violet-400" },
-            { label: "Min Stake", value: `$${limitsData?.data?.minStakeAmount || 0}`, icon: TrendingUp, color: "text-indigo-400" },
-            { label: "Max Stake", value: `$${limitsData?.data?.maxStakeAmount || 0}`, icon: Trophy, color: "text-amber-400" },
+            { label: "Min Stake", value: `${limitsData?.data?.minStakeAmount || 0} USDC`, icon: TrendingUp, color: "text-indigo-400" },
+            { label: "Max Stake", value: `${limitsData?.data?.maxStakeAmount || 0} USDC`, icon: Trophy, color: "text-amber-400" },
           ].map((stat) => (
             <div key={stat.label} className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
               <div className="flex items-center justify-between mb-1">
