@@ -409,7 +409,7 @@ export default function Navbar() {
                     className="flex items-center gap-3 px-3 py-2.5 text-gray-300 hover:text-white hover:bg-violet-500/10 rounded-xl transition-all"
                   >
                     <User className="w-4 h-4" />
-                    <span>Profilex</span>
+                    <span>Profile</span>
                   </Link>
 
                   <WalletDropdownBasename className="!px-3 !py-2.5 !text-gray-300 hover:!text-white hover:!bg-violet-500/10 !rounded-xl !transition-all" />
