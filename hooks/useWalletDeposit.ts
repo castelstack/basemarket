@@ -389,42 +389,59 @@ export function useWalletDeposit(
         JSON.stringify(status.statusData, null, 2)
       );
 
-      // DEBUG: Show status in toast for mobile debugging (remove in production)
-      toast.info(`Status: ${status.statusName}`, { duration: 3000 });
+      // DEBUG: Only show toast for actual transaction activity (remove in production)
+      const activeStatuses = [
+        "transactionApproved",
+        "transactionLegacyExecuted",
+        "success",
+        "error",
+      ];
+      if (activeStatuses.includes(status.statusName)) {
+        toast.info(`Status: ${status.statusName}`, { duration: 3000 });
+      }
 
       // Try to capture transaction hash from multiple possible property names
       // Mobile wallets may return the hash in different formats
-      const extractTxHash = (
-        data: unknown
-      ): `0x${string}` | undefined => {
+      const extractTxHash = (data: unknown): `0x${string}` | undefined => {
         if (!data || typeof data !== "object") return undefined;
         const d = data as Record<string, unknown>;
         return (
           (d.transactionHash as `0x${string}`) ||
           (d.hash as `0x${string}`) ||
           (d.txHash as `0x${string}`) ||
-          ((d.transactionReceipts as Array<{ transactionHash?: `0x${string}` }>)?.[0]?.transactionHash)
+          (
+            d.transactionReceipts as Array<{ transactionHash?: `0x${string}` }>
+          )?.[0]?.transactionHash
         );
       };
 
       // Capture transaction hash when available (for mobile wallet polling)
       if (status.statusName === "transactionPending") {
         const txHash = extractTxHash(status.statusData);
+        const keys = status.statusData
+          ? Object.keys(status.statusData as object)
+          : [];
+
         if (txHash) {
           console.log("Captured tx hash for polling:", txHash);
           // DEBUG: Show hash captured (remove in production)
-          toast.info(`Hash captured: ${txHash.slice(0, 10)}...`, { duration: 5000 });
+          toast.info(`Hash captured: ${txHash.slice(0, 10)}...`, {
+            duration: 5000,
+          });
           onchainKitSuccessHandled.current = false;
           setOnchainKitTxHash(txHash);
-        } else {
+        } else if (keys.length > 0) {
+          // Only warn if statusData has actual content (transaction was attempted)
           console.warn(
             "No tx hash found in transactionPending status:",
             status.statusData
           );
           // DEBUG: Show keys available in statusData (remove in production)
-          const keys = status.statusData ? Object.keys(status.statusData as object) : [];
-          toast.warning(`No hash found. Keys: ${keys.join(", ") || "none"}`, { duration: 5000 });
+          toast.warning(`No hash found. Keys: ${keys.join(", ")}`, {
+            duration: 5000,
+          });
         }
+        // If keys.length === 0, it's just an initial status update - ignore
       }
 
       // Also try to capture hash from other statuses that might contain it
