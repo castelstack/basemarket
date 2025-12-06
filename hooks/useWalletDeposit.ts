@@ -111,8 +111,15 @@ export function useWalletDeposit(
     toast.info(`Polling tx: ${onchainKitTxHash.slice(0, 10)}...`, { duration: 3000 });
 
     let cancelled = false;
+    let pollCount = 0;
     const pollInterval = setInterval(async () => {
-      if (cancelled || onchainKitSuccessHandled.current) return;
+      pollCount++;
+      toast.info(`Poll #${pollCount}`, { duration: 1000 });
+
+      if (cancelled || onchainKitSuccessHandled.current) {
+        toast.warning(`Polling stopped: cancelled=${cancelled}, handled=${onchainKitSuccessHandled.current}`);
+        return;
+      }
 
       try {
         const receipt = await getTransactionReceipt(wagmiConfig, {
@@ -120,9 +127,7 @@ export function useWalletDeposit(
         });
 
         // DEBUG: Show receipt status
-        if (receipt) {
-          toast.info(`Receipt: ${receipt.status}`, { duration: 2000 });
-        }
+        toast.info(`Receipt found: ${receipt?.status || "null"}`, { duration: 2000 });
 
         if (
           receipt &&
@@ -143,8 +148,8 @@ export function useWalletDeposit(
           options?.onError?.("Transaction reverted");
         }
       } catch (err: any) {
-        // DEBUG: Show polling error
-        console.log("Polling for tx receipt...", onchainKitTxHash, err?.message);
+        // DEBUG: Show polling attempt (transaction not yet mined)
+        toast.info(`Waiting for tx...`, { duration: 1500 });
       }
     }, 2000); // Poll every 2 seconds
 
