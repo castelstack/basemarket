@@ -253,12 +253,12 @@ export default function WalletPage() {
       <span
         className={cn(
           "font-bold text-sm inline-flex items-center gap-1",
-          isCredit ? "text-emerald-400" : "text-violet-400"
+          isCredit ? "text-emerald-400" : "text-[#EDEDED]"
         )}
       >
         {isCredit ? "+" : "-"}
-        <Image src="/usdc.svg" alt="USDC" width={12} height={12} />
         {numeral(amount).format("0,0.00")}
+        <Image src="/usdc.svg" alt="USDC" width={12} height={12} />
       </span>
     );
   };
