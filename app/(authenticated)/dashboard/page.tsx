@@ -15,6 +15,7 @@ import {
   Target,
   Wallet,
   RefreshCw,
+  Loader2,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -129,7 +130,7 @@ export default function DashboardPage() {
 
           {isLoading ? (
             <div className="flex justify-center py-8">
-              <div className="w-6 h-6 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin" />
+              <Loader2 className="w-6 h-6 text-[#9A9A9A] animate-spin" />
             </div>
           ) : activePolls.length === 0 ? (
             <div className="text-center py-6">

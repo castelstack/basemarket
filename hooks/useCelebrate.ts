@@ -1,5 +1,5 @@
-import { useComposeCast } from "@coinbase/onchainkit/minikit";
 import { useCallback } from "react";
+import { toast } from "sonner";
 
 type CelebrationType =
   | "win"
@@ -35,9 +35,7 @@ const celebrationMessages: Record<CelebrationType, (opts: CelebrateOptions) => s
 };
 
 export function useCelebrate() {
-  const { composeCast } = useComposeCast();
-
-  const celebrate = useCallback((options: CelebrateOptions) => {
+  const celebrate = useCallback(async (options: CelebrateOptions) => {
     const message = celebrationMessages[options.type](options);
     const appUrl = typeof window !== "undefined"
       ? options.pollId
@@ -45,11 +43,41 @@ export function useCelebrate() {
         : window.location.origin
       : "https://showstakr.com";
 
-    composeCast({
-      text: message,
-      embeds: [appUrl],
-    });
-  }, [composeCast]);
+    // Try to use MiniKit composeCast if available (Farcaster context)
+    try {
+      const { sdk } = await import("@coinbase/onchainkit/minikit");
+      if (sdk?.composeCast) {
+        sdk.composeCast({
+          text: message,
+          embeds: [appUrl],
+        });
+        return;
+      }
+    } catch {
+      // Not in MiniKit context, fall through to browser share
+    }
+
+    // Fallback: Use Web Share API or copy to clipboard
+    const shareText = `${message}\n\n${appUrl}`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          text: shareText,
+        });
+      } catch (err: any) {
+        // User cancelled or share failed, copy to clipboard instead
+        if (err?.name !== "AbortError") {
+          await navigator.clipboard.writeText(shareText);
+          toast.success("Copied to clipboard!");
+        }
+      }
+    } else {
+      // No Web Share API, copy to clipboard
+      await navigator.clipboard.writeText(shareText);
+      toast.success("Copied to clipboard!");
+    }
+  }, []);
 
   return { celebrate };
 }

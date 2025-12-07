@@ -107,8 +107,11 @@ export default function AdminTransactionsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-violet-400 animate-spin" />
+      <div className="min-h-screen bg-[#000000] flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 text-[#EDEDED] animate-spin mx-auto mb-3" />
+          <p className="text-[#9A9A9A] text-sm font-light">Loading...</p>
+        </div>
       </div>
     );
   }
