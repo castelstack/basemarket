@@ -106,8 +106,8 @@ export default function PollDetailsPage() {
     return (
       <div className="min-h-screen bg-[#000000] flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#EDEDED] mb-4"></div>
-          <p className="text-[#9A9A9A] font-light">Loading poll details...</p>
+          <Loader2 className="w-8 h-8 text-[#EDEDED] animate-spin mx-auto mb-3" />
+          <p className="text-[#9A9A9A] text-sm font-light">Loading...</p>
         </div>
       </div>
     );

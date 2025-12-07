@@ -2,11 +2,11 @@
 
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { useCelebrate } from "@/hooks/useCelebrate";
-import { Share2, Trophy, Flame, Sparkles, X } from "lucide-react";
+import { Share2, Check } from "lucide-react";
 import Image from "next/image";
 import confetti from "canvas-confetti";
 import { useEffect } from "react";
+import { toast } from "sonner";
 
 interface CelebrationModalProps {
   open: boolean;
@@ -21,40 +21,38 @@ interface CelebrationModalProps {
 
 const celebrationConfig = {
   win: {
-    icon: Trophy,
-    iconColor: "text-amber-400",
-    iconBg: "bg-amber-500/20",
-    title: "You Called It!",
+    title: "You Won",
     subtitle: "Your prediction was correct",
   },
   stake_placed: {
-    icon: Sparkles,
-    iconColor: "text-cyan-400",
-    iconBg: "bg-cyan-500/20",
-    title: "Stake Placed!",
+    title: "Stake Placed",
     subtitle: "Good luck with your prediction",
   },
   first_prediction: {
-    icon: Sparkles,
-    iconColor: "text-violet-400",
-    iconBg: "bg-violet-500/20",
-    title: "Welcome to the Game!",
-    subtitle: "You made your first prediction",
+    title: "First Prediction",
+    subtitle: "Welcome to ShowStakr",
   },
   win_streak: {
-    icon: Flame,
-    iconColor: "text-orange-400",
-    iconBg: "bg-orange-500/20",
-    title: "You're On Fire!",
-    subtitle: "Keep the streak going",
+    title: "Win Streak",
+    subtitle: "You're on fire",
   },
   claim: {
-    icon: Trophy,
-    iconColor: "text-emerald-400",
-    iconBg: "bg-emerald-500/20",
-    title: "Winnings Claimed!",
-    subtitle: "USDC sent to your wallet",
+    title: "Claimed",
+    subtitle: "Sent to your wallet",
   },
+};
+
+const celebrationMessages = {
+  win: (pollTitle?: string, winnings?: number) =>
+    `Just called it right on "${pollTitle}" and won ${winnings?.toFixed(2)} USDC on @showstakr`,
+  stake_placed: (pollTitle?: string, amount?: number) =>
+    `I'm putting my money where my mouth is - staked ${amount?.toFixed(2)} USDC on "${pollTitle}" on @showstakr`,
+  first_prediction: () =>
+    `Made my first prediction on @showstakr! Let's see if I called it right...`,
+  win_streak: (streakCount?: number) =>
+    `${streakCount} wins in a row on @showstakr - who wants to challenge me?`,
+  claim: (winnings?: number) =>
+    `Just claimed ${winnings?.toFixed(2)} USDC in winnings from @showstakr`,
 };
 
 export function CelebrationModal({
@@ -67,102 +65,106 @@ export function CelebrationModal({
   streakCount,
   pollId,
 }: CelebrationModalProps) {
-  const { celebrate } = useCelebrate();
   const config = celebrationConfig[type];
-  const Icon = config.icon;
+  const displayAmount = winnings || amount;
 
-  // Trigger confetti on win
+  // Trigger confetti on open
   useEffect(() => {
-    if (open && (type === "win" || type === "win_streak" || type === "claim")) {
+    if (open) {
       confetti({
-        particleCount: 100,
-        spread: 70,
-        origin: { y: 0.6 },
-        colors: ["#fbbf24", "#34d399", "#60a5fa", "#a78bfa"],
+        particleCount: 60,
+        spread: 50,
+        origin: { y: 0.7 },
+        colors: ["#EDEDED", "#D8D8D8", "#9A9A9A"],
+        disableForReducedMotion: true,
       });
     }
-  }, [open, type]);
+  }, [open]);
 
-  const handleShare = () => {
-    celebrate({
-      type,
-      pollTitle,
-      amount,
-      winnings,
-      streakCount,
-      pollId,
-    });
+  const handleShare = async () => {
+    let message = "";
+    if (type === "win") message = celebrationMessages.win(pollTitle, winnings);
+    else if (type === "stake_placed") message = celebrationMessages.stake_placed(pollTitle, amount);
+    else if (type === "first_prediction") message = celebrationMessages.first_prediction();
+    else if (type === "win_streak") message = celebrationMessages.win_streak(streakCount);
+    else if (type === "claim") message = celebrationMessages.claim(winnings);
+
+    const appUrl = pollId
+      ? `${window.location.origin}/polls/${pollId}`
+      : window.location.origin;
+    const shareText = `${message}\n\n${appUrl}`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ text: shareText });
+        return;
+      } catch {
+        // Fall through to clipboard
+      }
+    }
+
+    await navigator.clipboard.writeText(shareText);
+    toast.success("Copied to clipboard");
   };
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="bg-[#0A0A0A] border-[#1F1F1F] text-center max-w-sm mx-4 p-6">
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 text-[#9A9A9A] hover:text-[#EDEDED]"
-        >
-          <X className="w-5 h-5" />
-        </button>
+      <DialogContent className="bg-[#0A0A0A] border-[#1F1F1F] max-w-[320px] p-0 gap-0 rounded-2xl overflow-hidden">
+        {/* Content */}
+        <div className="px-6 pt-8 pb-6 text-center">
+          {/* Success indicator */}
+          <div className="w-12 h-12 rounded-full bg-[#151515] border border-[#1F1F1F] flex items-center justify-center mx-auto mb-5">
+            <Check className="w-5 h-5 text-[#EDEDED]" />
+          </div>
 
-        {/* Icon */}
-        <div
-          className={`w-20 h-20 rounded-full ${config.iconBg} flex items-center justify-center mx-auto mb-4`}
-        >
-          <Icon className={`w-10 h-10 ${config.iconColor}`} />
+          {/* Title */}
+          <h2 className="text-lg font-medium text-[#EDEDED] mb-1">
+            {config.title}
+          </h2>
+          <p className="text-[#9A9A9A] text-sm font-light">{config.subtitle}</p>
+
+          {/* Amount */}
+          {displayAmount && (
+            <div className="mt-6 mb-2">
+              <p className="text-3xl font-semibold text-[#EDEDED] flex items-center justify-center gap-2">
+                <Image src="/usdc.svg" alt="USDC" width={24} height={24} />
+                {displayAmount.toFixed(2)}
+              </p>
+            </div>
+          )}
+
+          {/* Win streak */}
+          {type === "win_streak" && streakCount && (
+            <div className="mt-6 mb-2">
+              <p className="text-3xl font-semibold text-[#EDEDED]">
+                {streakCount} wins
+              </p>
+            </div>
+          )}
+
+          {/* Poll title */}
+          {pollTitle && (
+            <p className="text-xs text-[#9A9A9A] mt-4 line-clamp-1 font-light">
+              {pollTitle}
+            </p>
+          )}
         </div>
 
-        {/* Title */}
-        <h2 className="text-2xl font-semibold text-[#EDEDED] mb-1">
-          {config.title}
-        </h2>
-        <p className="text-[#9A9A9A] text-sm mb-4">{config.subtitle}</p>
-
-        {/* Amount display */}
-        {(winnings || amount) && (
-          <div className="p-4 rounded-xl bg-[#151515] border border-[#1F1F1F] mb-6">
-            <p className="text-xs text-[#9A9A9A] mb-1">
-              {type === "win" || type === "claim" ? "You won" : "You staked"}
-            </p>
-            <p className="text-3xl font-semibold text-[#EDEDED] flex items-center justify-center gap-2">
-              <Image src="/usdc.svg" alt="USDC" width={28} height={28} />
-              {(winnings || amount)?.toFixed(2)}
-            </p>
-          </div>
-        )}
-
-        {/* Win streak display */}
-        {type === "win_streak" && streakCount && (
-          <div className="p-4 rounded-xl bg-[#151515] border border-[#1F1F1F] mb-6">
-            <p className="text-xs text-[#9A9A9A] mb-1">Win Streak</p>
-            <p className="text-3xl font-semibold text-orange-400 flex items-center justify-center gap-2">
-              <Flame className="w-7 h-7" />
-              {streakCount}
-            </p>
-          </div>
-        )}
-
-        {/* Poll title */}
-        {pollTitle && (
-          <p className="text-sm text-[#9A9A9A] mb-6 line-clamp-2">
-            &ldquo;{pollTitle}&rdquo;
-          </p>
-        )}
-
         {/* Actions */}
-        <div className="space-y-2">
+        <div className="px-6 pb-6 space-y-2">
           <Button
             onClick={handleShare}
-            className="w-full h-12 bg-[#EDEDED] hover:bg-[#D8D8D8] text-[#0A0A0A] font-medium rounded-full"
+            className="w-full h-11 bg-[#EDEDED] hover:bg-[#D8D8D8] text-[#0A0A0A] text-sm font-medium rounded-full"
           >
             <Share2 className="w-4 h-4 mr-2" />
-            Share Your {type === "win" ? "Win" : type === "win_streak" ? "Streak" : "Prediction"}
+            Share
           </Button>
           <Button
             onClick={onClose}
             variant="ghost"
-            className="w-full h-12 text-[#9A9A9A] hover:text-[#EDEDED] hover:bg-[#151515] rounded-full"
+            className="w-full h-11 text-[#9A9A9A] hover:text-[#EDEDED] hover:bg-[#151515] text-sm rounded-full"
           >
-            Continue
+            Done
           </Button>
         </div>
       </DialogContent>

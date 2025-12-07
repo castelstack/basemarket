@@ -18,6 +18,7 @@ import {
   Calendar,
   Crown,
   DollarSign,
+  Loader2,
   Plus,
   TrendingUp,
   Users,
@@ -54,18 +55,21 @@ export default function AdminDashboardPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-violet-400" />
+      <div className="min-h-screen bg-[#000000] flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 text-[#EDEDED] animate-spin mx-auto mb-3" />
+          <p className="text-[#9A9A9A] text-sm font-light">Loading...</p>
+        </div>
       </div>
     );
   }
 
   if (isError) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center px-4">
+      <div className="min-h-screen bg-[#000000] flex items-center justify-center px-4">
         <div className="text-center">
           <p className="text-red-400 mb-4">Error: {error?.message || "Failed to load"}</p>
-          <Button onClick={() => window.location.reload()}>Try Again</Button>
+          <Button onClick={() => window.location.reload()} className="bg-[#EDEDED] hover:bg-[#D8D8D8] text-[#0A0A0A]">Try Again</Button>
         </div>
       </div>
     );

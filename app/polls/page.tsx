@@ -727,26 +727,23 @@ export default function PollsPage() {
                         <Trophy className="w-3.5 h-3.5 text-emerald-400" />
                       )}
                     </span>
-                    <Badge
-                      variant="secondary"
+                    <span
                       className={cn(
-                        "text-xs",
-                        isWinner
-                          ? "bg-emerald-500/10 text-emerald-400"
-                          : "bg-[#1F1F1F] text-[#D8D8D8]"
+                        "text-sm font-medium",
+                        isWinner ? "text-emerald-400" : "text-cyan-400"
                       )}
                     >
                       {percentage.toFixed(1)}%
-                    </Badge>
+                    </span>
                   </div>
                   <div className="h-1.5 bg-[#1F1F1F] rounded-full overflow-hidden">
                     <div
-                      className="h-full rounded-full transition-all"
+                      className="h-full rounded-full transition-all duration-500"
                       style={{
                         width: `${Math.min(percentage, 100)}%`,
                         background: isWinner
-                          ? "linear-gradient(to right, #10b981, #14b8a6)"
-                          : "#D8D8D8",
+                          ? "linear-gradient(to right, rgb(16 185 129), rgb(20 184 166))"
+                          : "linear-gradient(to right, rgb(34 211 238), rgb(6 182 212))",
                       }}
                     />
                   </div>
