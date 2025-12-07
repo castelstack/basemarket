@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
@@ -134,14 +135,17 @@ export default function SharePollDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-[#0A0A0A] border-[#1F1F1F] text-[#EDEDED] max-w-sm p-0 gap-0 rounded-2xl overflow-hidden">
-        <DialogHeader className="px-5 pt-5 pb-4">
+      <DialogContent className="bg-[#0A0A0A] border-[#1F1F1F] text-[#EDEDED] max-w-sm mx-4">
+        <DialogHeader>
           <DialogTitle className="text-lg font-semibold text-[#EDEDED]">
             Share Poll
           </DialogTitle>
+          <DialogDescription className="text-[#9A9A9A] text-sm font-light">
+            Share this poll with others
+          </DialogDescription>
         </DialogHeader>
 
-        <div className="px-5 pb-5 space-y-4">
+        <div className="space-y-4 mt-2">
           {/* Hidden Poll Card for Capture */}
           <div style={{ position: 'absolute', left: '-9999px', top: '-9999px' }}>
             <div
@@ -149,126 +153,200 @@ export default function SharePollDialog({
               style={{
                 width: '480px',
                 background: '#000000',
-                borderRadius: '20px',
-                padding: '32px',
                 fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                position: 'relative',
+                overflow: 'hidden',
               }}
             >
-              {/* Logo */}
-              <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-                <img
-                  src="https://res.cloudinary.com/dnvsfxlan/image/upload/v1754824130/Group_1000001891_2_tybmb9.svg"
-                  alt="Logo"
-                  style={{ width: '40px', height: '40px', margin: '0 auto' }}
-                />
+              {/* Background decorative elements */}
+              <div style={{
+                position: 'absolute',
+                top: '0',
+                left: '0',
+                right: '0',
+                bottom: '0',
+                pointerEvents: 'none',
+              }}>
+                {/* Grid lines */}
+                <div style={{
+                  position: 'absolute',
+                  top: '0',
+                  left: '50%',
+                  width: '1px',
+                  height: '100%',
+                  background: 'linear-gradient(to bottom, transparent, #1F1F1F 20%, #1F1F1F 80%, transparent)',
+                  opacity: '0.5',
+                }} />
+                <div style={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: '0',
+                  width: '100%',
+                  height: '1px',
+                  background: 'linear-gradient(to right, transparent, #1F1F1F 20%, #1F1F1F 80%, transparent)',
+                  opacity: '0.5',
+                }} />
+                {/* Corner accents */}
+                <div style={{
+                  position: 'absolute',
+                  top: '24px',
+                  left: '24px',
+                  width: '40px',
+                  height: '40px',
+                  borderTop: '1px solid #1F1F1F',
+                  borderLeft: '1px solid #1F1F1F',
+                  opacity: '0.6',
+                }} />
+                <div style={{
+                  position: 'absolute',
+                  top: '24px',
+                  right: '24px',
+                  width: '40px',
+                  height: '40px',
+                  borderTop: '1px solid #1F1F1F',
+                  borderRight: '1px solid #1F1F1F',
+                  opacity: '0.6',
+                }} />
+                <div style={{
+                  position: 'absolute',
+                  bottom: '24px',
+                  left: '24px',
+                  width: '40px',
+                  height: '40px',
+                  borderBottom: '1px solid #1F1F1F',
+                  borderLeft: '1px solid #1F1F1F',
+                  opacity: '0.6',
+                }} />
+                <div style={{
+                  position: 'absolute',
+                  bottom: '24px',
+                  right: '24px',
+                  width: '40px',
+                  height: '40px',
+                  borderBottom: '1px solid #1F1F1F',
+                  borderRight: '1px solid #1F1F1F',
+                  opacity: '0.6',
+                }} />
+                {/* Radial glow */}
+                <div style={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  width: '300px',
+                  height: '300px',
+                  background: 'radial-gradient(circle, rgba(34,211,211,0.03) 0%, transparent 70%)',
+                  borderRadius: '50%',
+                }} />
               </div>
+              <table style={{ width: '100%', borderCollapse: 'collapse', position: 'relative', zIndex: '1' }}>
+                <tbody>
+                  {/* Spacer */}
+                  <tr><td style={{ height: '32px' }}></td></tr>
 
-              {/* Title */}
-              <div
-                style={{
-                  fontSize: '24px',
-                  fontWeight: '600',
-                  color: '#EDEDED',
-                  textAlign: 'center',
-                  marginBottom: '24px',
-                  lineHeight: '1.3',
-                }}
-              >
-                {poll.title}
-              </div>
+                  {/* Logo */}
+                  <tr>
+                    <td style={{ textAlign: 'center' }}>
+                      <table style={{ margin: '0 auto', borderCollapse: 'collapse' }}>
+                        <tbody>
+                          <tr>
+                            <td style={{ textAlign: 'center' }}>
+                              <img
+                                src="https://res.cloudinary.com/dnvsfxlan/image/upload/v1754824130/Group_1000001891_2_tybmb9.svg"
+                                alt="Logo"
+                                style={{ width: '36px', height: '36px', display: 'block', margin: '0 auto' }}
+                              />
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </td>
+                  </tr>
 
-              {/* Stats Row */}
-              <div
-                style={{
-                  display: 'flex',
-                  gap: '12px',
-                  marginBottom: '24px',
-                }}
-              >
-                <div
-                  style={{
-                    flex: 1,
-                    background: '#0A0A0A',
-                    border: '1px solid #1F1F1F',
-                    borderRadius: '12px',
-                    padding: '16px',
-                    textAlign: 'center',
-                  }}
-                >
-                  <div style={{ color: '#9A9A9A', fontSize: '11px', marginBottom: '6px', fontWeight: '500' }}>
-                    POOL
-                  </div>
-                  <div style={{ color: '#EDEDED', fontSize: '20px', fontWeight: '600', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-                    <img src="/usdc.svg" alt="USDC" style={{ width: '18px', height: '18px' }} />
-                    {formatNumber(totalAmount)}
-                  </div>
-                </div>
-                <div
-                  style={{
-                    flex: 1,
-                    background: '#0A0A0A',
-                    border: '1px solid #1F1F1F',
-                    borderRadius: '12px',
-                    padding: '16px',
-                    textAlign: 'center',
-                  }}
-                >
-                  <div style={{ color: '#9A9A9A', fontSize: '11px', marginBottom: '6px', fontWeight: '500' }}>
-                    PLAYERS
-                  </div>
-                  <div style={{ color: '#EDEDED', fontSize: '20px', fontWeight: '600' }}>
-                    {totalParticipants}
-                  </div>
-                </div>
-              </div>
+                  {/* Spacer */}
+                  <tr><td style={{ height: '20px' }}></td></tr>
 
-              {/* Options */}
-              {sortedOptions.length > 0 && (
-                <div style={{ marginBottom: '20px' }}>
-                  {sortedOptions.map((option: any, index: number) => (
-                    <div
-                      key={option.id}
+                  {/* Title */}
+                  <tr>
+                    <td
                       style={{
-                        background: '#0A0A0A',
-                        border: '1px solid #1F1F1F',
-                        borderRadius: '10px',
-                        padding: '12px 14px',
-                        marginBottom: '8px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
+                        fontSize: '22px',
+                        fontWeight: '600',
+                        color: '#EDEDED',
+                        textAlign: 'center',
+                        lineHeight: '1.4',
                       }}
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <span style={{ color: '#9A9A9A', fontSize: '12px' }}>#{index + 1}</span>
-                        <span style={{ color: '#EDEDED', fontSize: '14px' }}>{option.text}</span>
-                      </div>
-                      <span style={{ color: '#22D3D3', fontSize: '14px', fontWeight: '600' }}>
-                        {option.percentage.toFixed(1)}%
-                      </span>
-                    </div>
-                  ))}
-                  {poll.options.length > 3 && (
-                    <div style={{ textAlign: 'center', color: '#9A9A9A', fontSize: '12px', marginTop: '4px' }}>
-                      +{poll.options.length - 3} more
-                    </div>
-                  )}
-                </div>
-              )}
+                      {poll.title}
+                    </td>
+                  </tr>
 
-              {/* Footer */}
-              <div
-                style={{
-                  borderTop: '1px solid #1F1F1F',
-                  paddingTop: '16px',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                }}
-              >
-                <span style={{ color: '#9A9A9A', fontSize: '12px' }}>showstakr.com</span>
-                <span style={{ color: '#9A9A9A', fontSize: '12px' }}>Predict & Win</span>
-              </div>
+                  {/* Spacer */}
+                  <tr><td style={{ height: '24px' }}></td></tr>
+
+                  {/* Stats */}
+                  <tr>
+                    <td style={{ textAlign: 'center' }}>
+                      <span style={{ color: '#9A9A9A', fontSize: '13px' }}>
+                        {formatNumber(totalAmount)} USDC pool
+                      </span>
+                      <span style={{ color: '#9A9A9A', fontSize: '13px', marginLeft: '20px' }}>
+                        {totalParticipants} players
+                      </span>
+                    </td>
+                  </tr>
+
+                  {/* Spacer */}
+                  <tr><td style={{ height: '28px' }}></td></tr>
+
+                  {/* Options */}
+                  {sortedOptions.map((option: any, index: number) => (
+                    <tr key={option.id}>
+                      <td>
+                        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                          <tbody>
+                            <tr>
+                              <td style={{ width: '32px' }}></td>
+                              <td style={{ color: '#9A9A9A', fontSize: '13px', width: '24px' }}>
+                                {index + 1}.
+                              </td>
+                              <td style={{ color: '#EDEDED', fontSize: '14px' }}>
+                                {option.text}
+                              </td>
+                              <td style={{ color: '#22D3D3', fontSize: '14px', fontWeight: '600', textAlign: 'right' }}>
+                                {option.percentage.toFixed(1)}%
+                              </td>
+                              <td style={{ width: '32px' }}></td>
+                            </tr>
+                            <tr><td colSpan={5} style={{ height: '12px' }}></td></tr>
+                          </tbody>
+                        </table>
+                      </td>
+                    </tr>
+                  ))}
+
+                  {poll.options && poll.options.length > 3 && (
+                    <tr>
+                      <td style={{ textAlign: 'center', color: '#9A9A9A', fontSize: '12px' }}>
+                        +{poll.options.length - 3} more options
+                      </td>
+                    </tr>
+                  )}
+
+                  {/* Spacer */}
+                  <tr><td style={{ height: '28px' }}></td></tr>
+
+                  {/* Footer */}
+                  <tr>
+                    <td style={{ textAlign: 'center', color: '#9A9A9A', fontSize: '12px' }}>
+                      showstakr.com
+                    </td>
+                  </tr>
+
+                  {/* Spacer */}
+                  <tr><td style={{ height: '32px' }}></td></tr>
+                </tbody>
+              </table>
             </div>
           </div>
 
@@ -319,7 +397,7 @@ export default function SharePollDialog({
               onClick={handleCaptureAndDownload}
               disabled={isCapturing}
               variant="outline"
-              className="h-11 px-4 border-[#1F1F1F] text-[#D8D8D8] hover:bg-[#151515] rounded-xl"
+              className="h-11 px-4 border-[#1F1F1F] text-[#D8D8D8] hover:text-[#EDEDED] hover:bg-[#151515] rounded-xl"
             >
               {isCapturing ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
