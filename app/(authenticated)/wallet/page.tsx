@@ -55,6 +55,7 @@ import {
 } from "@coinbase/onchainkit/transaction";
 import numeral from "numeral";
 import { useAccount } from "wagmi";
+import dayjs from "dayjs";
 const EXPECTED_CHAIN_ID = Number(process.env.NEXT_PUBLIC_CHAIN_ID) || 8453;
 
 export default function WalletPage() {
@@ -270,42 +271,42 @@ export default function WalletPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-[#000000]">
       {/* Background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-violet-600/10 rounded-full blur-[120px]" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-[#1F1F1F]/20 rounded-full blur-[150px]" />
       </div>
 
       <div className="relative px-4 sm:px-6 py-6 max-w-3xl mx-auto">
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-2xl font-black text-white">Wallet</h1>
-          <p className="text-gray-500 text-sm">Manage your funds</p>
+          <h1 className="text-2xl font-semibold text-[#EDEDED]">Wallet</h1>
+          <p className="text-[#9A9A9A] text-sm font-light">Manage your funds</p>
         </div>
 
         {/* Balance Card */}
-        <div className="p-5 rounded-2xl bg-gradient-to-br from-violet-500/20 to-indigo-500/20 border border-violet-500/20 mb-6">
+        <div className="p-5 rounded-xl bg-[#0A0A0A] border border-[#1F1F1F] mb-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-white/10">
-                <Wallet className="w-5 h-5 text-white" />
+              <div className="p-2.5 rounded-xl bg-[#151515]">
+                <Wallet className="w-5 h-5 text-[#D8D8D8]" />
               </div>
               <div>
-                <p className="text-sm text-gray-400">Total Balance</p>
-                <p className="text-2xl font-black text-white inline-flex items-center gap-2">
+                <p className="text-sm text-[#9A9A9A] font-light">Total Balance</p>
+                <p className="text-2xl font-semibold text-[#EDEDED] inline-flex items-center gap-2">
                   <Image src="/usdc.svg" alt="USDC" width={24} height={24} />
                   {numeral(balance).format("0,0.00")}
                 </p>
               </div>
             </div>
-            <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">
+            <Badge className="bg-[#2775CA]/10 text-[#2775CA] border-[#2775CA]/20">
               USDC
             </Badge>
           </div>
           <div className="flex gap-2">
             <Button
               onClick={() => setIsDepositDialogOpen(true)}
-              className="flex-1 h-11 bg-gradient-to-r from-violet-500 to-indigo-500 hover:from-violet-600 hover:to-indigo-600 font-bold rounded-xl"
+              className="flex-1 h-11 bg-[#EDEDED] hover:bg-[#D8D8D8] text-[#0A0A0A] font-medium rounded-full transition-colors"
             >
               <Plus className="w-4 h-4 mr-2" />
               Deposit
@@ -313,7 +314,7 @@ export default function WalletPage() {
             <Button
               onClick={() => setIsWithdrawDialogOpen(true)}
               variant="outline"
-              className="flex-1 h-11 border-white/10 text-white hover:bg-white/10 rounded-xl"
+              className="flex-1 h-11 border-[#1F1F1F] text-[#D8D8D8] hover:bg-[#151515] rounded-xl transition-colors"
             >
               <Send className="w-4 h-4 mr-2" />
               Withdraw
@@ -322,12 +323,11 @@ export default function WalletPage() {
         </div>
 
         {/* Info Banner */}
-        <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 mb-6">
+        <div className="p-4 rounded-xl bg-[#0000ff]/10 border border-[#0000ff]/20 mb-6">
           <div className="flex items-center gap-3">
-            {/* <Image src="/base.jpeg" alt="Base" width={32} height={32} className="rounded-lg flex-shrink-0" /> */}
             <div>
               <div className="flex gap-1 items-end">
-                <p className="text-xs text-gray-200">Using</p>
+                <p className="text-xs text-[#D8D8D8]">Using</p>
                 <Image
                   src="/base-text.svg"
                   alt="Base Network"
@@ -335,9 +335,9 @@ export default function WalletPage() {
                   height={20}
                   className="mb-1"
                 />
-                <p className="text-xs text-gray-200">Network</p>
+                <p className="text-xs text-[#D8D8D8]">Network</p>
               </div>
-              <p className="text-xs text-gray-400">
+              <p className="text-xs text-[#9A9A9A] font-light">
                 Fast, secure USDC transactions
               </p>
             </div>
@@ -345,9 +345,9 @@ export default function WalletPage() {
         </div>
 
         {/* Transaction History */}
-        <div className="rounded-2xl bg-white/[0.03] border border-white/[0.06] overflow-hidden">
-          <div className="p-4 border-b border-white/[0.06]">
-            <h2 className="text-lg font-bold text-white mb-3">Transactions</h2>
+        <div className="rounded-xl bg-[#0A0A0A] border border-[#1F1F1F] overflow-hidden">
+          <div className="p-4 border-b border-[#1F1F1F]">
+            <h2 className="text-base font-medium text-[#EDEDED] mb-3">Transactions</h2>
             {/* Filter Tabs */}
             <div className="flex gap-2">
               {[
@@ -359,10 +359,10 @@ export default function WalletPage() {
                   key={tab.value}
                   onClick={() => setActiveTab(tab.value)}
                   className={cn(
-                    "px-3 py-1.5 rounded-lg text-sm font-medium transition-colors",
+                    "px-3 py-1.5 rounded-lg text-sm font-normal transition-colors",
                     activeTab === tab.value
-                      ? "bg-violet-500/20 text-violet-400"
-                      : "text-gray-500 hover:text-white"
+                      ? "bg-[#151515] text-[#EDEDED]"
+                      : "text-[#9A9A9A] hover:text-[#D8D8D8]"
                   )}
                 >
                   {tab.label}
@@ -374,13 +374,13 @@ export default function WalletPage() {
           <div className="p-4">
             {isLoading ? (
               <div className="flex justify-center py-8">
-                <Loader2 className="w-6 h-6 text-gray-400 animate-spin" />
+                <Loader2 className="w-6 h-6 text-[#9A9A9A] animate-spin" />
               </div>
             ) : transactions.length === 0 ? (
               <div className="text-center py-8">
-                <Coins className="w-10 h-10 text-gray-600 mx-auto mb-3" />
-                <p className="text-gray-400 text-sm">No transactions yet</p>
-                <p className="text-gray-500 text-xs mt-1">
+                <Coins className="w-10 h-10 text-[#9A9A9A]/50 mx-auto mb-3" />
+                <p className="text-[#9A9A9A] text-sm">No transactions yet</p>
+                <p className="text-[#9A9A9A]/60 text-xs mt-1 font-light">
                   Make a deposit to get started
                 </p>
               </div>
@@ -389,19 +389,20 @@ export default function WalletPage() {
                 {transactions.map((tx: any) => (
                   <div
                     key={tx.id}
-                    className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.05] hover:bg-white/[0.04] transition-colors"
+                    className="p-3 rounded-xl bg-[#151515] border border-[#1F1F1F] hover:border-[#9A9A9A]/20 transition-colors"
                   >
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-lg bg-white/10">
+                        <div className="p-2 rounded-lg bg-[#1F1F1F]">
                           {getTransactionIcon(tx.type)}
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-white capitalize">
+                          <p className="text-sm font-normal text-[#EDEDED] capitalize">
                             {tx.type || "Transaction"}
                           </p>
-                          <p className="text-xs text-gray-500">
-                            {new Date(tx.createdAt).toLocaleDateString()}
+                          <p className="text-xs text-[#9A9A9A] font-light">
+                            {dayjs(tx.createdAt).format("D MMM, YYYY")} at{" "}
+                            {dayjs(tx.createdAt).format("h:mm A")}
                           </p>
                         </div>
                       </div>
@@ -412,7 +413,7 @@ export default function WalletPage() {
                       {tx.reference && (
                         <button
                           onClick={() => copyToClipboard(tx.reference, tx.id)}
-                          className="flex items-center gap-1 text-xs text-gray-500 hover:text-white transition-colors"
+                          className="flex items-center gap-1 text-xs text-[#9A9A9A] hover:text-[#D8D8D8] transition-colors"
                         >
                           <Hash className="w-3 h-3" />
                           <span className="font-mono truncate max-w-[100px]">
@@ -457,19 +458,19 @@ export default function WalletPage() {
           }
         }}
       >
-        <DialogContent className="bg-gray-900 border-white/10 text-white max-w-md mx-4">
+        <DialogContent className="bg-[#0A0A0A] border-[#1F1F1F] text-[#EDEDED] max-w-md mx-4">
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold">
+            <DialogTitle className="text-xl font-semibold">
               Deposit USDC
             </DialogTitle>
-            <DialogDescription className="text-gray-400">
+            <DialogDescription className="text-[#9A9A9A]">
               Transfer USDC from your wallet
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 mt-2">
             <div className="space-y-2">
-              <Label className="text-sm">Amount (USDC)</Label>
+              <Label className="text-sm text-[#9A9A9A]">Amount (USDC)</Label>
               <Input
                 type="number"
                 min="0"
@@ -478,12 +479,12 @@ export default function WalletPage() {
                 onChange={(e) => setDepositAmount(e.target.value)}
                 placeholder="Enter amount"
                 disabled={isDepositing}
-                className="h-11 bg-white/[0.03] border-white/[0.06] text-white rounded-xl"
+                className="h-11 bg-[#151515] border-[#1F1F1F] text-[#EDEDED] rounded-xl"
               />
             </div>
 
             <div className="space-y-2">
-              <Label className="text-sm text-gray-400">Quick Select</Label>
+              <Label className="text-sm text-[#9A9A9A]">Quick Select</Label>
               <div className="grid grid-cols-4 gap-2">
                 {quickAmounts.map((amount) => (
                   <Button
@@ -492,7 +493,7 @@ export default function WalletPage() {
                     size="sm"
                     onClick={() => setDepositAmount(amount.toString())}
                     disabled={isDepositing}
-                    className="border-white/10 text-white hover:bg-white/10 rounded-lg text-xs h-9 inline-flex items-center gap-1"
+                    className="border-[#1F1F1F] text-[#D8D8D8] hover:bg-[#151515] rounded-lg text-xs h-9 inline-flex items-center gap-1"
                   >
                     <Image src="/usdc.svg" alt="USDC" width={12} height={12} />
                     {amount}
@@ -501,10 +502,10 @@ export default function WalletPage() {
               </div>
             </div>
 
-            <div className="p-3 rounded-xl bg-violet-500/10 border border-violet-500/30">
+            <div className="p-3 rounded-xl bg-[#151515] border border-[#1F1F1F]">
               <div className="flex items-start gap-2">
-                <Shield className="w-4 h-4 text-violet-400 flex-shrink-0 mt-0.5" />
-                <p className="text-xs text-gray-400">
+                <Shield className="w-4 h-4 text-[#9A9A9A] flex-shrink-0 mt-0.5" />
+                <p className="text-xs text-[#9A9A9A] font-light">
                   USDC will be transferred directly on Base network. Ensure you
                   have enough USDC.
                 </p>
@@ -521,7 +522,7 @@ export default function WalletPage() {
                   disabled={
                     !depositAmount || isDepositing || parseFloat(depositAmount) <= 0
                   }
-                  className="w-full bg-gradient-to-r from-violet-500 to-indigo-500 hover:from-violet-600 hover:to-indigo-600 font-bold rounded-xl py-3"
+                  className="w-full bg-[#EDEDED] hover:bg-[#D8D8D8] text-[#0A0A0A] font-medium rounded-full py-3"
                   text="Deposit USDC"
                 />
                 <TransactionSponsor />
@@ -545,33 +546,33 @@ export default function WalletPage() {
           }
         }}
       >
-        <DialogContent className="bg-gray-900 border-white/10 text-white max-w-md mx-4 max-h-[90vh] overflow-y-auto">
+        <DialogContent className="bg-[#0A0A0A] border-[#1F1F1F] text-[#EDEDED] max-w-md mx-4 max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold">
+            <DialogTitle className="text-xl font-semibold">
               Withdraw USDC
             </DialogTitle>
-            <DialogDescription className="text-gray-400">
+            <DialogDescription className="text-[#9A9A9A]">
               Send USDC to your wallet
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 mt-2">
             <div className="space-y-2">
-              <Label className="text-sm">Wallet Address</Label>
+              <Label className="text-sm text-[#9A9A9A]">Wallet Address</Label>
               <Input
                 type="text"
                 value={connectedAddress || ""}
                 readOnly
                 disabled
-                className="h-11 bg-white/[0.03] border-white/[0.06] text-white rounded-xl font-mono text-sm opacity-70 cursor-not-allowed"
+                className="h-11 bg-[#151515] border-[#1F1F1F] text-[#EDEDED] rounded-xl font-mono text-sm opacity-70 cursor-not-allowed"
               />
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-[#9A9A9A] font-light">
                 Withdrawals will be sent to your connected wallet
               </p>
             </div>
 
             <div className="space-y-2">
-              <Label className="text-sm">Amount (USDC)</Label>
+              <Label className="text-sm text-[#9A9A9A]">Amount (USDC)</Label>
               <Input
                 type="number"
                 min={minWithdrawalAmount}
@@ -580,11 +581,11 @@ export default function WalletPage() {
                 value={withdrawalAmount}
                 onChange={(e) => setWithdrawalAmount(e.target.value)}
                 placeholder={`Min. ${minWithdrawalAmount} USDC`}
-                className="h-11 bg-white/[0.03] border-white/[0.06] text-white rounded-xl"
+                className="h-11 bg-[#151515] border-[#1F1F1F] text-[#EDEDED] rounded-xl"
               />
               <div className="flex justify-between text-xs">
-                <span className="text-gray-500">Available</span>
-                <span className="text-white inline-flex items-center gap-1">
+                <span className="text-[#9A9A9A]">Available</span>
+                <span className="text-[#EDEDED] inline-flex items-center gap-1">
                   <Image src="/usdc.svg" alt="USDC" width={12} height={12} />
                   {numeral(balance).format("0,0.00")}
                 </span>
@@ -597,7 +598,7 @@ export default function WalletPage() {
                     size="sm"
                     onClick={() => setWithdrawalAmount(amount.toString())}
                     disabled={amount > balance}
-                    className="border-white/10 text-white hover:bg-white/10 rounded-lg text-xs h-8 inline-flex items-center gap-1"
+                    className="border-[#1F1F1F] text-[#D8D8D8] hover:bg-[#151515] rounded-lg text-xs h-8 inline-flex items-center gap-1"
                   >
                     <Image src="/usdc.svg" alt="USDC" width={10} height={10} />
                     {amount}
@@ -611,20 +612,20 @@ export default function WalletPage() {
               parseFloat(withdrawalAmount) >= minWithdrawalAmount && (
                 <div className="space-y-3">
                   {isCalcLoading ? (
-                    <div className="p-3 rounded-xl bg-violet-500/10 border border-violet-500/30">
+                    <div className="p-3 rounded-xl bg-[#151515] border border-[#1F1F1F]">
                       <div className="flex items-center gap-2">
-                        <Loader2 className="w-4 h-4 text-violet-400 animate-spin" />
-                        <span className="text-sm text-violet-400">
+                        <Loader2 className="w-4 h-4 text-[#9A9A9A] animate-spin" />
+                        <span className="text-sm text-[#9A9A9A]">
                           Calculating...
                         </span>
                       </div>
                     </div>
                   ) : withdrawalCalc?.data ? (
                     <>
-                      <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.06] space-y-2">
+                      <div className="p-3 rounded-xl bg-[#151515] border border-[#1F1F1F] space-y-2">
                         <div className="flex justify-between text-sm">
-                          <span className="text-gray-400">Amount</span>
-                          <span className="text-white inline-flex items-center gap-1">
+                          <span className="text-[#9A9A9A]">Amount</span>
+                          <span className="text-[#EDEDED] inline-flex items-center gap-1">
                             <Image
                               src="/usdc.svg"
                               alt="USDC"
@@ -635,10 +636,10 @@ export default function WalletPage() {
                           </span>
                         </div>
                         <div className="flex justify-between text-sm">
-                          <span className="text-gray-400">
+                          <span className="text-[#9A9A9A]">
                             Fee ({withdrawalCalc.data.platformFeePercentage}%)
                           </span>
-                          <span className="text-violet-400 inline-flex items-center gap-1">
+                          <span className="text-[#9A9A9A] inline-flex items-center gap-1">
                             -
                             <Image
                               src="/usdc.svg"
@@ -650,8 +651,8 @@ export default function WalletPage() {
                           </span>
                         </div>
                         <div className="flex justify-between text-sm">
-                          <span className="text-gray-400">Network Fee</span>
-                          <span className="text-violet-400 inline-flex items-center gap-1">
+                          <span className="text-[#9A9A9A]">Network Fee</span>
+                          <span className="text-[#9A9A9A] inline-flex items-center gap-1">
                             -
                             <Image
                               src="/usdc.svg"
@@ -662,12 +663,12 @@ export default function WalletPage() {
                             {withdrawalCalc.data.transferFee.toLocaleString()}
                           </span>
                         </div>
-                        <div className="h-px bg-white/10" />
+                        <div className="h-px bg-[#1F1F1F]" />
                         <div className="flex justify-between">
-                          <span className="text-gray-300 font-medium">
+                          <span className="text-[#D8D8D8] font-medium">
                             You receive
                           </span>
-                          <span className="text-emerald-400 font-bold inline-flex items-center gap-1">
+                          <span className="text-emerald-400 font-medium inline-flex items-center gap-1">
                             <Image
                               src="/usdc.svg"
                               alt="USDC"
@@ -680,7 +681,7 @@ export default function WalletPage() {
                       </div>
 
                       {!withdrawalCalc.data.canWithdraw && (
-                        <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30">
+                        <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20">
                           <div className="flex items-start gap-2">
                             <XCircle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
                             <p className="text-xs text-red-400 inline-flex items-center gap-1">
@@ -701,10 +702,10 @@ export default function WalletPage() {
                 </div>
               )}
 
-            <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30">
+            <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20">
               <div className="flex items-start gap-2">
                 <AlertCircle className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
-                <p className="text-xs text-gray-400">
+                <p className="text-xs text-[#9A9A9A] font-light">
                   Withdrawals are processed on Base network. Ensure your wallet
                   supports Base.
                 </p>
@@ -718,7 +719,7 @@ export default function WalletPage() {
                   setIsWithdrawDialogOpen(false);
                   setWithdrawalAmount("");
                 }}
-                className="flex-1 h-11 border-white/10 text-gray-400 hover:text-white hover:bg-white/10 rounded-xl"
+                className="flex-1 h-11 border-[#1F1F1F] text-[#9A9A9A] hover:text-[#EDEDED] hover:bg-[#151515] rounded-xl"
               >
                 Cancel
               </Button>
@@ -732,7 +733,7 @@ export default function WalletPage() {
                   (withdrawalCalc?.data && !withdrawalCalc.data.canWithdraw) ||
                   withdrawMutation.isPending
                 }
-                className="flex-1 h-11 bg-gradient-to-r from-violet-500 to-indigo-500 hover:from-violet-600 hover:to-indigo-600 font-bold rounded-xl"
+                className="flex-1 h-11 bg-[#EDEDED] hover:bg-[#D8D8D8] text-[#0A0A0A] font-medium rounded-full transition-colors"
               >
                 {withdrawMutation.isPending ? (
                   <>

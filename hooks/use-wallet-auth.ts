@@ -118,32 +118,17 @@ export const useWalletAuth = (): UseWalletAuthReturn => {
     }
   }, [isConnected]);
 
-  // Listen for auth being cleared (e.g., after 401)
+  // Check auth on mount
   useEffect(() => {
-    const checkAuth = () => {
-      const hasToken = !!localStorage.getItem("accessToken");
-      if (!hasToken && isConnected && !user) {
-        setAuthCleared(true);
-      }
-    };
-
-    // Check on mount
-    checkAuth();
-
-    // Listen for storage changes
-    const handleStorage = (e: StorageEvent) => {
-      if (e.key === "accessToken" && !e.newValue) {
-        setAuthCleared(true);
-      }
-    };
-
-    window.addEventListener("storage", handleStorage);
-    return () => window.removeEventListener("storage", handleStorage);
+    const hasToken = !!localStorage.getItem("accessToken");
+    if (!hasToken && isConnected && !user) {
+      setAuthCleared(true);
+    }
   }, [isConnected, user]);
 
   // Computed states
   const isWalletConnected = isConnected;
-  const isAuthenticated = !!user && isConnected;
+  const isAuthenticated = isConnected && !!profileData?.data && !isProfileError;
 
   // Show sign in when:
   // 1. Wallet is connected but no user in store

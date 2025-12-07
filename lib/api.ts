@@ -23,6 +23,9 @@ export const handleUnauthorized = () => {
     localStorage.removeItem("auth-store");
     localStorage.removeItem("user");
 
+    // Dispatch custom event to notify auth hooks to clear in-memory state
+    window.dispatchEvent(new CustomEvent("auth:unauthorized"));
+
     // Show toast only once per session
     if (!hasShownUnauthorizedToast) {
       hasShownUnauthorizedToast = true;

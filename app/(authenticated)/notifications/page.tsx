@@ -10,6 +10,7 @@ import {
 } from "@/lib/notifications";
 import { useAuthStore } from "@/stores/authStore";
 import { Button } from "@/components/ui/button";
+import { CelebrationModal } from "@/components/CelebrationModal";
 import {
   Bell,
   BellOff,
@@ -37,6 +38,14 @@ export default function NotificationsPage() {
   const router = useRouter();
   const { user } = useAuthStore();
   const [activeTab, setActiveTab] = useState<FilterTab>("all");
+
+  // Celebration modal state
+  const [celebrationOpen, setCelebrationOpen] = useState(false);
+  const [celebrationData, setCelebrationData] = useState<{
+    pollTitle?: string;
+    winnings?: number;
+    pollId?: string;
+  }>({});
 
   // API hooks
   const { data: notificationsData, isLoading } = useNotifications();
@@ -124,17 +133,41 @@ export default function NotificationsPage() {
     });
   };
 
+  const handleNotificationClick = (notification: any) => {
+    // If it's a win notification that hasn't been read, show celebration
+    if (notification.type === "win" && notification.status !== "read") {
+      // Extract win data from notification metadata
+      const winnings = notification.metadata?.winnings || notification.metadata?.amount;
+      const pollTitle = notification.metadata?.pollTitle || notification.title;
+      const pollId = notification.metadata?.pollId;
+
+      setCelebrationData({
+        pollTitle,
+        winnings,
+        pollId,
+      });
+      setCelebrationOpen(true);
+
+      // Mark as read
+      markAsReadMutation.mutate(notification.id);
+    } else if (notification.actionUrl) {
+      router.push(notification.actionUrl);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-black pb-24">
+    <div className="min-h-screen bg-[#000000] pb-24">
       {/* Background */}
-      <div className="fixed inset-0 bg-gradient-to-b from-violet-950/20 via-black to-black pointer-events-none" />
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-[#1F1F1F]/20 rounded-full blur-[150px]" />
+      </div>
 
       <div className="relative max-w-2xl mx-auto px-4 py-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-xl font-bold text-white">Notifications</h1>
-            <p className="text-gray-500 text-sm mt-0.5">
+            <h1 className="text-xl font-semibold text-[#EDEDED]">Notifications</h1>
+            <p className="text-[#9A9A9A] text-sm mt-0.5 font-light">
               {unreadCount > 0 ? `${unreadCount} unread` : "All caught up"}
             </p>
           </div>
@@ -145,7 +178,7 @@ export default function NotificationsPage() {
               disabled={markAllAsReadMutation.isPending}
               size="sm"
               variant="ghost"
-              className="text-violet-400 hover:text-violet-300 hover:bg-violet-500/10"
+              className="text-[#9A9A9A] hover:text-[#EDEDED] hover:bg-[#151515]"
             >
               {markAllAsReadMutation.isPending ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -165,8 +198,8 @@ export default function NotificationsPage() {
             onClick={() => setActiveTab("all")}
             className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
               activeTab === "all"
-                ? "bg-white text-black"
-                : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white"
+                ? "bg-[#EDEDED] text-[#0A0A0A]"
+                : "bg-[#151515] text-[#9A9A9A] hover:bg-[#1F1F1F] hover:text-[#EDEDED]"
             }`}
           >
             All
@@ -175,16 +208,16 @@ export default function NotificationsPage() {
             onClick={() => setActiveTab("unread")}
             className={`px-4 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-2 ${
               activeTab === "unread"
-                ? "bg-white text-black"
-                : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white"
+                ? "bg-[#EDEDED] text-[#0A0A0A]"
+                : "bg-[#151515] text-[#9A9A9A] hover:bg-[#1F1F1F] hover:text-[#EDEDED]"
             }`}
           >
             Unread
             {unreadCount > 0 && (
               <span className={`text-xs px-1.5 py-0.5 rounded-full ${
                 activeTab === "unread"
-                  ? "bg-black/20 text-black"
-                  : "bg-violet-500/20 text-violet-400"
+                  ? "bg-[#0A0A0A]/20 text-[#0A0A0A]"
+                  : "bg-red-500/20 text-red-400"
               }`}>
                 {unreadCount}
               </span>
@@ -195,7 +228,7 @@ export default function NotificationsPage() {
         {/* Content */}
         {isLoading ? (
           <div className="flex items-center justify-center py-20">
-            <Loader2 className="w-6 h-6 text-violet-400 animate-spin" />
+            <Loader2 className="w-6 h-6 text-[#EDEDED] animate-spin" />
           </div>
         ) : filteredNotifications.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
@@ -204,18 +237,18 @@ export default function NotificationsPage() {
                 <div className="w-14 h-14 rounded-full bg-emerald-500/10 flex items-center justify-center mb-4">
                   <CheckCircle className="w-7 h-7 text-emerald-400" />
                 </div>
-                <p className="text-white font-medium">All caught up!</p>
-                <p className="text-gray-500 text-sm mt-1">
+                <p className="text-[#EDEDED] font-medium">All caught up!</p>
+                <p className="text-[#9A9A9A] text-sm mt-1 font-light">
                   No unread notifications
                 </p>
               </>
             ) : (
               <>
-                <div className="w-14 h-14 rounded-full bg-white/5 flex items-center justify-center mb-4">
-                  <BellOff className="w-7 h-7 text-gray-600" />
+                <div className="w-14 h-14 rounded-full bg-[#151515] flex items-center justify-center mb-4">
+                  <BellOff className="w-7 h-7 text-[#9A9A9A]" />
                 </div>
-                <p className="text-white font-medium">No notifications yet</p>
-                <p className="text-gray-500 text-sm mt-1">
+                <p className="text-[#EDEDED] font-medium">No notifications yet</p>
+                <p className="text-[#9A9A9A] text-sm mt-1 font-light">
                   We'll notify you when something happens
                 </p>
               </>
@@ -228,8 +261,8 @@ export default function NotificationsPage() {
                 key={notification.id}
                 className={`group relative p-4 rounded-2xl border transition-all ${
                   notification.status === "read"
-                    ? "bg-white/[0.02] border-white/5"
-                    : "bg-white/[0.04] border-white/10"
+                    ? "bg-[#0A0A0A] border-[#1F1F1F]/50"
+                    : "bg-[#0A0A0A] border-[#1F1F1F]"
                 }`}
               >
                 <div className="flex gap-3">
@@ -247,17 +280,17 @@ export default function NotificationsPage() {
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <h3 className="text-white text-sm font-medium truncate">
+                          <h3 className="text-[#EDEDED] text-sm font-medium truncate">
                             {notification.title}
                           </h3>
                           {notification.status !== "read" && (
-                            <span className="w-2 h-2 rounded-full bg-violet-500 flex-shrink-0" />
+                            <span className="w-2 h-2 rounded-full bg-red-500 flex-shrink-0" />
                           )}
                         </div>
-                        <p className="text-gray-400 text-sm mt-0.5 line-clamp-2">
+                        <p className="text-[#9A9A9A] text-sm mt-0.5 line-clamp-2 font-light">
                           {notification.message}
                         </p>
-                        <p className="text-gray-600 text-xs mt-2">
+                        <p className="text-[#9A9A9A]/60 text-xs mt-2 font-light">
                           {dayjs(notification.createdAt).fromNow()}
                         </p>
                       </div>
@@ -267,14 +300,14 @@ export default function NotificationsPage() {
                         {notification.status !== "read" && (
                           <button
                             onClick={() => handleMarkAsRead(notification.id)}
-                            className="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
+                            className="p-2 rounded-lg text-[#9A9A9A] hover:text-[#EDEDED] hover:bg-[#151515] transition-colors"
                           >
                             <Check className="w-4 h-4" />
                           </button>
                         )}
                         <button
                           onClick={() => handleDelete(notification.id)}
-                          className="p-2 rounded-lg text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                          className="p-2 rounded-lg text-[#9A9A9A] hover:text-red-400 hover:bg-red-500/10 transition-colors"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -282,12 +315,14 @@ export default function NotificationsPage() {
                     </div>
 
                     {/* Action Button */}
-                    {notification.actionUrl && (
+                    {(notification.actionUrl || notification.type === "win") && (
                       <button
-                        onClick={() => router.push(notification.actionUrl)}
-                        className="mt-3 px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-white text-xs font-medium transition-colors"
+                        onClick={() => handleNotificationClick(notification)}
+                        className="mt-3 px-3 py-1.5 bg-[#151515] hover:bg-[#1F1F1F] border border-[#1F1F1F] rounded-lg text-[#EDEDED] text-xs font-medium transition-colors"
                       >
-                        {notification.actionText || "View Details"}
+                        {notification.type === "win" && notification.status !== "read"
+                          ? "Celebrate Win"
+                          : notification.actionText || "View Details"}
                       </button>
                     )}
                   </div>
@@ -298,14 +333,14 @@ export default function NotificationsPage() {
                   {notification.status !== "read" && (
                     <button
                       onClick={() => handleMarkAsRead(notification.id)}
-                      className="p-2 rounded-lg text-gray-500 hover:text-white hover:bg-white/10 transition-colors"
+                      className="p-2 rounded-lg text-[#9A9A9A] hover:text-[#EDEDED] hover:bg-[#151515] transition-colors"
                     >
                       <Check className="w-4 h-4" />
                     </button>
                   )}
                   <button
                     onClick={() => handleDelete(notification.id)}
-                    className="p-2 rounded-lg text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                    className="p-2 rounded-lg text-[#9A9A9A] hover:text-red-400 hover:bg-red-500/10 transition-colors"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -315,6 +350,22 @@ export default function NotificationsPage() {
           </div>
         )}
       </div>
+
+      {/* Celebration Modal for Win Notifications */}
+      <CelebrationModal
+        open={celebrationOpen}
+        onClose={() => {
+          setCelebrationOpen(false);
+          // Navigate to poll if available
+          if (celebrationData.pollId) {
+            router.push(`/polls/${celebrationData.pollId}`);
+          }
+        }}
+        type="win"
+        pollTitle={celebrationData.pollTitle}
+        winnings={celebrationData.winnings}
+        pollId={celebrationData.pollId}
+      />
     </div>
   );
 }

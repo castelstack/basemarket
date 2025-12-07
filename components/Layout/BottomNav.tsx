@@ -13,18 +13,21 @@ const navItems = [
     label: "Home",
     icon: Home,
     requiresAuth: true,
+    activeColor: "text-amber-400",
   },
   {
     href: "/polls",
     label: "Predict",
     icon: Trophy,
     requiresAuth: false,
+    activeColor: "text-emerald-400",
   },
   {
     href: "/wallet",
     label: "Wallet",
     icon: Wallet,
     requiresAuth: true,
+    activeColor: "text-blue-400",
   },
   {
     href: "/notifications",
@@ -32,12 +35,14 @@ const navItems = [
     icon: Bell,
     showBadge: true,
     requiresAuth: true,
+    activeColor: "text-red-400",
   },
   {
     href: "/profile",
     label: "Profile",
     icon: User,
     requiresAuth: true,
+    activeColor: "text-[#EDEDED]",
   },
 ];
 
@@ -61,8 +66,8 @@ export default function BottomNav() {
 
   return (
     <nav className="fixed bottom-4 left-4 right-4 z-50 md:hidden">
-      <div className="flex items-center justify-around px-2 bg-black/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-lg shadow-black/50">
-        {visibleItems.map(({ href, label, icon: Icon, showBadge }) => {
+      <div className="flex items-center justify-around px-2 bg-[#0A0A0A]/95 backdrop-blur-xl border border-[#1F1F1F] rounded-2xl shadow-lg shadow-black/50">
+        {visibleItems.map(({ href, label, icon: Icon, showBadge, activeColor }) => {
           const active = isActive(href);
           return (
             <Link
@@ -71,19 +76,19 @@ export default function BottomNav() {
               className={cn(
                 "flex flex-col items-center justify-center py-2 px-3 min-w-[56px] min-h-[56px] transition-all",
                 "active:scale-95 touch-manipulation",
-                active ? "text-white" : "text-gray-500"
+                active ? "text-white" : "text-[#9A9A9A]"
               )}
             >
               <div className="relative">
                 <Icon
                   className={cn(
                     "w-5 h-5 transition-all",
-                    active && "text-violet-400"
+                    active && activeColor
                   )}
                   strokeWidth={active ? 2.5 : 2}
                 />
                 {showBadge && unreadCount > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-1 bg-violet-500 rounded-full flex items-center justify-center">
+                  <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-1 bg-red-500 rounded-full flex items-center justify-center">
                     <span className="text-[10px] font-bold text-white">
                       {unreadCount > 9 ? "9+" : unreadCount}
                     </span>
@@ -93,13 +98,16 @@ export default function BottomNav() {
               <span
                 className={cn(
                   "text-[10px] mt-1 font-medium transition-all",
-                  active ? "text-violet-400" : "text-gray-500"
+                  active ? activeColor : "text-[#9A9A9A]"
                 )}
               >
                 {label}
               </span>
               {active && (
-                <div className="absolute bottom-1 w-1 h-1 rounded-full bg-violet-400" />
+                <div className={cn(
+                  "absolute bottom-1 w-1 h-1 rounded-full",
+                  activeColor.replace("text-", "bg-")
+                )} />
               )}
             </Link>
           );

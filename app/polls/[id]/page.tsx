@@ -3,6 +3,7 @@
 import InsufficientBalanceModal from "@/components/modals/InsufficientBalanceModal";
 import EditPollDialog from "@/components/dialogs/EditPollDialog";
 import SharePollDialog from "@/components/dialogs/SharePollDialog";
+import { CelebrationModal } from "@/components/CelebrationModal";
 import { Badge } from "@/components/ui/badge";
 import { getStatusBadge, getCategoryBadge } from "@/lib/poll-badges";
 import { Button } from "@/components/ui/button";
@@ -23,7 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { usePollById, usePollStats } from "@/lib/polls";
-import { useCalculateWinnings, useCreateStake } from "@/lib/stakes";
+import { useCalculateWinnings, useCreateStake, useMyStakes } from "@/lib/stakes";
 import { usePlatformLimits } from "@/lib/platform-settings";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/authStore";
@@ -76,7 +77,13 @@ export default function PollDetailsPage() {
   const [requiredStakeAmount, setRequiredStakeAmount] = useState(0);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
+  const [celebrationOpen, setCelebrationOpen] = useState(false);
+  const [celebrationType, setCelebrationType] = useState<"stake_placed" | "first_prediction">("stake_placed");
+  const [celebrationAmount, setCelebrationAmount] = useState(0);
   const createStakeMutation = useCreateStake();
+
+  // Get user's stakes to detect first prediction
+  const { data: myStakesData } = useMyStakes();
 
   // Calculate potential winnings
   const { data: winningsData } = useCalculateWinnings({
@@ -97,10 +104,10 @@ export default function PollDetailsPage() {
 
   if (isPollLoading || isStatsLoading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-[#000000] flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-violet-400 mb-4"></div>
-          <p className="text-gray-400">Loading poll details...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#EDEDED] mb-4"></div>
+          <p className="text-[#9A9A9A] font-light">Loading poll details...</p>
         </div>
       </div>
     );
@@ -114,15 +121,15 @@ export default function PollDetailsPage() {
 
   if (!poll) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-[#000000] flex items-center justify-center">
         <div className="text-center">
           <XCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-white mb-4">Poll Not Found</h1>
-          <p className="text-gray-400 mb-6">
+          <h1 className="text-2xl font-semibold text-[#EDEDED] mb-4">Poll Not Found</h1>
+          <p className="text-[#9A9A9A] font-light mb-6">
             {` The poll you're looking for doesn't exist.`}
           </p>
           <Link href="/polls">
-            <Button>
+            <Button className="bg-[#EDEDED] hover:bg-[#D8D8D8] text-[#0A0A0A] font-medium rounded-full">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Polls
             </Button>
@@ -224,15 +231,21 @@ export default function PollDetailsPage() {
           // Track successful stake
           trackStakePlaced(poll.id, selectedOptionId, amount, poll.category);
 
-          toast.success(
-            `Stake placed! ${amount.toLocaleString()} USDC on ${
-              selectedOption?.text
-            }`
-          );
+          // Check if this is user's first prediction
+          const isFirstPrediction = !myStakesData?.data?.docs?.length;
+
+          // Set celebration data and show modal
+          setCelebrationAmount(amount);
+          setCelebrationType(isFirstPrediction ? "first_prediction" : "stake_placed");
           setIsStakeDialogOpen(false);
           setStakeAmount("");
           setSelectedOptionId("");
           refetch();
+
+          // Show celebration modal after a brief delay
+          setTimeout(() => {
+            setCelebrationOpen(true);
+          }, 300);
         },
         onError: (error: any) => {
           toast.error(
@@ -250,27 +263,27 @@ export default function PollDetailsPage() {
   const daysLeft = Math.ceil(timeLeft / (1000 * 60 * 60 * 24));
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-[#000000]">
       {/* Background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-violet-600/10 rounded-full blur-[120px]" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-[#1F1F1F]/20 rounded-full blur-[150px]" />
       </div>
 
       <div className="relative px-4 sm:px-6 py-6 max-w-3xl mx-auto">
         {/* Back Button */}
-        <Link href="/polls" className="inline-flex items-center gap-2 text-gray-400 hover:text-white text-sm mb-4">
+        <Link href="/polls" className="inline-flex items-center gap-2 text-[#9A9A9A] hover:text-[#EDEDED] text-sm mb-4 transition-colors">
           <ArrowLeft className="w-4 h-4" />
           Back
         </Link>
 
         {/* Header Card */}
-        <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-4 sm:p-6 mb-6">
+        <div className="bg-[#0A0A0A] border border-[#1F1F1F] rounded-2xl p-4 sm:p-6 mb-6">
           {/* Badges */}
           <div className="flex items-center gap-2 mb-3 flex-wrap">
             {getCategoryBadge(poll.category)}
             {getStatusBadge(poll.status)}
             {poll.status === "active" && timeLeft > 0 && (
-              <Badge variant="outline" className="border-amber-500/30 text-amber-400">
+              <Badge className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                 <Timer className="w-3 h-3 mr-1" />
                 {daysLeft}d left
               </Badge>
@@ -278,31 +291,31 @@ export default function PollDetailsPage() {
           </div>
 
           {/* Title */}
-          <h1 className="text-xl sm:text-2xl font-bold text-white mb-2">{poll.title}</h1>
-          <p className="text-gray-400 text-sm mb-4">{poll.description}</p>
+          <h1 className="text-xl sm:text-2xl font-semibold text-[#EDEDED] mb-2">{poll.title}</h1>
+          <p className="text-[#9A9A9A] text-sm font-light mb-4">{poll.description}</p>
 
           {/* Stats Grid */}
           <div className="grid grid-cols-2 gap-3 mb-4">
-            <div className="bg-white/[0.03] rounded-xl p-3">
-              <p className="text-gray-500 text-xs">Pool</p>
-              <p className="text-emerald-400 font-bold inline-flex items-center gap-1">
+            <div className="bg-[#151515] rounded-xl p-3">
+              <p className="text-[#9A9A9A] text-xs font-light">Pool</p>
+              <p className="text-emerald-400 font-semibold inline-flex items-center gap-1">
                 <Image src="/usdc.svg" alt="USDC" width={16} height={16} />
                 {formatNumber(totalAmount)}
               </p>
             </div>
-            <div className="bg-white/[0.03] rounded-xl p-3">
-              <p className="text-gray-500 text-xs">Players</p>
-              <p className="text-white font-bold">{formatNumber(totalStakes)}</p>
+            <div className="bg-[#151515] rounded-xl p-3">
+              <p className="text-[#9A9A9A] text-xs font-light">Players</p>
+              <p className="text-[#EDEDED] font-semibold">{formatNumber(totalStakes)}</p>
             </div>
-            <div className="bg-white/[0.03] rounded-xl p-3">
-              <p className="text-gray-500 text-xs">Ends</p>
-              <p className="text-white font-bold text-sm">
+            <div className="bg-[#151515] rounded-xl p-3">
+              <p className="text-[#9A9A9A] text-xs font-light">Ends</p>
+              <p className="text-[#EDEDED] font-medium text-sm">
                 {poll.endTime ? dayjs(poll.endTime).format("MMM D, h:mm A") : "Manual"}
               </p>
             </div>
-            <div className="bg-white/[0.03] rounded-xl p-3">
-              <p className="text-gray-500 text-xs">Avg Stake</p>
-              <p className="text-white font-bold inline-flex items-center gap-1">
+            <div className="bg-[#151515] rounded-xl p-3">
+              <p className="text-[#9A9A9A] text-xs font-light">Avg Stake</p>
+              <p className="text-[#EDEDED] font-semibold inline-flex items-center gap-1">
                 <Image src="/usdc.svg" alt="USDC" width={16} height={16} />
                 {formatNumber(averageStake)}
               </p>
@@ -315,7 +328,7 @@ export default function PollDetailsPage() {
               variant="outline"
               size="icon"
               onClick={() => setIsShareDialogOpen(true)}
-              className="shrink-0"
+              className="shrink-0 border-[#1F1F1F] text-[#9A9A9A] hover:text-[#EDEDED] hover:bg-[#151515]"
             >
               <Share2 className="w-4 h-4" />
             </Button>
@@ -324,16 +337,15 @@ export default function PollDetailsPage() {
                 variant="outline"
                 size="icon"
                 onClick={() => setIsEditDialogOpen(true)}
-                className="shrink-0"
+                className="shrink-0 border-[#1F1F1F] text-[#9A9A9A] hover:text-[#EDEDED] hover:bg-[#151515]"
               >
                 <Edit className="w-4 h-4" />
               </Button>
             )}
             {poll.status === "active" && (
               <Button
-                variant="gradient"
                 disabled={timeLeft <= 0 || hasUserStaked()}
-                className="flex-1"
+                className="flex-1 bg-[#EDEDED] hover:bg-[#D8D8D8] text-[#0A0A0A] font-medium rounded-full disabled:opacity-50"
                 onClick={handleStakeClick}
               >
                 <Coins className="w-4 h-4 mr-2" />
@@ -346,12 +358,12 @@ export default function PollDetailsPage() {
         {/* Options Section */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-white font-semibold flex items-center gap-2">
-              <Target className="w-4 h-4 text-violet-400" />
+            <h2 className="text-[#EDEDED] font-medium flex items-center gap-2">
+              <Target className="w-4 h-4 text-cyan-400" />
               Options
             </h2>
             {hasUserStaked() && (
-              <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">
+              <Badge className="bg-blue-500/10 text-blue-400 border-blue-500/20">
                 <Trophy className="w-3 h-3 mr-1" />
                 Staked
               </Badge>
@@ -389,8 +401,8 @@ export default function PollDetailsPage() {
                     isWinner
                       ? "bg-emerald-500/10 border-emerald-500/30"
                       : poll.status === "active"
-                      ? "bg-white/[0.03] border-white/[0.06] hover:border-violet-500/30 cursor-pointer"
-                      : "bg-white/[0.03] border-white/[0.06]"
+                      ? "bg-[#0A0A0A] border-[#1F1F1F] hover:border-[#9A9A9A]/30 cursor-pointer"
+                      : "bg-[#0A0A0A] border-[#1F1F1F]"
                   )}
                   onClick={() => {
                     if (poll.status === "active" && !hasUserStaked()) {
@@ -400,7 +412,7 @@ export default function PollDetailsPage() {
                   }}
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-white text-sm font-medium flex items-center gap-2">
+                    <span className="text-[#EDEDED] text-sm font-medium flex items-center gap-2">
                       {option.text}
                       {isWinner && (
                         <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 text-xs">
@@ -409,24 +421,24 @@ export default function PollDetailsPage() {
                       )}
                     </span>
                     <span className={cn(
-                      "text-sm font-bold",
-                      isWinner ? "text-emerald-400" : "text-violet-400"
+                      "text-sm font-semibold",
+                      isWinner ? "text-emerald-400" : "text-cyan-400"
                     )}>
                       {percentage.toFixed(1)}%
                     </span>
                   </div>
-                  <div className="relative h-1.5 bg-white/10 rounded-full overflow-hidden">
+                  <div className="relative h-1.5 bg-[#1F1F1F] rounded-full overflow-hidden">
                     <div
                       className="absolute inset-y-0 left-0 rounded-full transition-all duration-500"
                       style={{
                         width: `${Math.min(percentage, 100)}%`,
                         background: isWinner
                           ? "linear-gradient(to right, rgb(16 185 129), rgb(20 184 166))"
-                          : "linear-gradient(to right, rgb(139 92 246), rgb(99 102 241))",
+                          : "linear-gradient(to right, rgb(34 211 238), rgb(6 182 212))",
                       }}
                     />
                   </div>
-                  <div className="flex justify-between mt-1.5 text-xs text-gray-500">
+                  <div className="flex justify-between mt-1.5 text-xs text-[#9A9A9A]">
                     <span className="inline-flex items-center gap-1">
                       <Image src="/usdc.svg" alt="USDC" width={12} height={12} />
                       {formatNumber(optionAmount)}
@@ -440,13 +452,12 @@ export default function PollDetailsPage() {
 
           {/* Stake CTA for active polls */}
           {poll.status === "active" && !hasUserStaked() && timeLeft > 0 && (
-            <div className="mt-4 p-4 rounded-xl bg-violet-500/10 border border-violet-500/20">
-              <p className="text-gray-300 text-sm mb-3 inline-flex items-center gap-1 flex-wrap">
+            <div className="mt-4 p-4 rounded-xl bg-[#0A0A0A] border border-[#1F1F1F]">
+              <p className="text-[#9A9A9A] text-sm mb-3 inline-flex items-center gap-1 flex-wrap font-light">
                 Min: <Image src="/usdc.svg" alt="USDC" width={12} height={12} />{minStake} • Balance: <Image src="/usdc.svg" alt="USDC" width={12} height={12} />{balance.toLocaleString()}
               </p>
               <Button
-                variant="gradient"
-                className="w-full"
+                className="w-full bg-[#EDEDED] hover:bg-[#D8D8D8] text-[#0A0A0A] font-medium rounded-full"
                 onClick={handleStakeClick}
               >
                 <Coins className="w-4 h-4 mr-2" />
@@ -469,11 +480,10 @@ export default function PollDetailsPage() {
 
       {/* Floating Action Button for Mobile */}
       {poll.status === "active" && timeLeft > 0 && !hasUserStaked() && (
-        <div className="fixed bottom-6 right-6 z-40 md:hidden">
+        <div className="fixed bottom-24 right-6 z-40 md:hidden">
           <Button
             onClick={handleStakeClick}
-            variant="gradient"
-            className="rounded-full w-14 h-14 shadow-xl shadow-violet-500/30"
+            className="rounded-full w-14 h-14 shadow-xl bg-[#EDEDED] hover:bg-[#D8D8D8] text-[#0A0A0A]"
           >
             <Coins className="w-6 h-6" />
           </Button>
@@ -491,23 +501,23 @@ export default function PollDetailsPage() {
           }
         }}
       >
-        <DialogContent className="bg-black/95 backdrop-blur-xl border-white/10 text-white">
+        <DialogContent className="bg-[#0A0A0A] border-[#1F1F1F] text-[#EDEDED]">
           <DialogHeader>
-            <DialogTitle className="text-lg font-bold text-white">Place Your Stake</DialogTitle>
-            <DialogDescription className="text-gray-400 text-sm">{poll.title}</DialogDescription>
+            <DialogTitle className="text-lg font-semibold text-[#EDEDED]">Place Your Stake</DialogTitle>
+            <DialogDescription className="text-[#9A9A9A] text-sm font-light">{poll.title}</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 overflow-y-auto max-h-[60vh]">
             {/* Option Selection */}
             <div className="space-y-2">
-              <Label className="text-gray-300 text-sm">Select prediction</Label>
+              <Label className="text-[#9A9A9A] text-sm font-light">Select prediction</Label>
               <Select value={selectedOptionId} onValueChange={setSelectedOptionId}>
-                <SelectTrigger className="bg-white/5 border-white/10 text-white rounded-xl">
+                <SelectTrigger className="bg-[#151515] border-[#1F1F1F] text-[#EDEDED] rounded-xl">
                   <SelectValue placeholder="Choose an option" />
                 </SelectTrigger>
-                <SelectContent className="bg-black border-white/10 max-h-[200px]">
+                <SelectContent className="bg-[#0A0A0A] border-[#1F1F1F] max-h-[200px]">
                   {poll.options?.map((option: any) => (
-                    <SelectItem key={option.id} value={option.id} className="text-white hover:bg-white/10">
+                    <SelectItem key={option.id} value={option.id} className="text-[#EDEDED] hover:bg-[#151515]">
                       {option.text}
                     </SelectItem>
                   ))}
@@ -519,7 +529,7 @@ export default function PollDetailsPage() {
               <>
                 {/* Amount Input */}
                 <div className="space-y-2">
-                  <Label className="text-gray-300 text-sm">Amount (USDC)</Label>
+                  <Label className="text-[#9A9A9A] text-sm font-light">Amount (USDC)</Label>
                   <Input
                     type="number"
                     step="0.01"
@@ -527,7 +537,7 @@ export default function PollDetailsPage() {
                     value={stakeAmount}
                     onChange={(e) => setStakeAmount(e.target.value)}
                     min={minStake}
-                    className="bg-white/5 border-white/10 text-white rounded-xl"
+                    className="bg-[#151515] border-[#1F1F1F] text-[#EDEDED] rounded-xl"
                   />
                   <div className="flex flex-wrap gap-2">
                     {quickAmounts.map((amount) => (
@@ -536,7 +546,7 @@ export default function PollDetailsPage() {
                         onClick={() => setStakeAmount(amount.toString())}
                         variant="outline"
                         size="sm"
-                        className="text-xs inline-flex items-center gap-1"
+                        className="text-xs inline-flex items-center gap-1 border-[#1F1F1F] text-[#9A9A9A] hover:text-[#EDEDED] hover:bg-[#151515]"
                       >
                         <Image src="/usdc.svg" alt="USDC" width={12} height={12} />
                         {amount}
@@ -547,10 +557,10 @@ export default function PollDetailsPage() {
 
                 {/* Potential Winnings */}
                 {winningsData?.data && parseFloat(stakeAmount) >= minStake && (
-                  <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30">
+                  <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-400">Potential Win</span>
-                      <span className="text-emerald-400 font-bold inline-flex items-center gap-1">
+                      <span className="text-[#9A9A9A] font-light">Potential Win</span>
+                      <span className="text-emerald-400 font-semibold inline-flex items-center gap-1">
                         <Image src="/usdc.svg" alt="USDC" width={12} height={12} />
                         {winningsData.data.grossWinnings.toLocaleString()}
                       </span>
@@ -559,16 +569,16 @@ export default function PollDetailsPage() {
                 )}
 
                 {/* Balance Info */}
-                <div className="p-3 rounded-xl bg-white/5 border border-white/10">
+                <div className="p-3 rounded-xl bg-[#151515] border border-[#1F1F1F]">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-400">Balance</span>
-                    <span className="text-white inline-flex items-center gap-1">
+                    <span className="text-[#9A9A9A] font-light">Balance</span>
+                    <span className="text-[#EDEDED] inline-flex items-center gap-1">
                       <Image src="/usdc.svg" alt="USDC" width={12} height={12} />
                       {balance.toLocaleString()}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm mt-1">
-                    <span className="text-gray-400">After</span>
+                    <span className="text-[#9A9A9A] font-light">After</span>
                     <span className={cn("inline-flex items-center gap-1", parseFloat(stakeAmount) > balance ? "text-red-400" : "text-emerald-400")}>
                       <Image src="/usdc.svg" alt="USDC" width={12} height={12} />
                       {(balance - parseFloat(stakeAmount || "0")).toLocaleString()}
@@ -578,10 +588,9 @@ export default function PollDetailsPage() {
 
                 {/* Submit */}
                 <Button
-                  variant="gradient"
                   onClick={handlePlaceStake}
                   disabled={createStakeMutation.isPending || !stakeAmount || parseFloat(stakeAmount) < minStake}
-                  className="w-full"
+                  className="w-full bg-[#EDEDED] hover:bg-[#D8D8D8] text-[#0A0A0A] font-medium rounded-full disabled:opacity-50"
                 >
                   {createStakeMutation.isPending ? (
                     <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Placing...</>
@@ -631,6 +640,16 @@ export default function PollDetailsPage() {
           poll={poll}
         />
       )}
+
+      {/* Celebration Modal */}
+      <CelebrationModal
+        open={celebrationOpen}
+        onClose={() => setCelebrationOpen(false)}
+        type={celebrationType}
+        pollTitle={poll?.title}
+        amount={celebrationAmount}
+        pollId={poll?.id}
+      />
     </div>
   );
 }
