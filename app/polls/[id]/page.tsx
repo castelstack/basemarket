@@ -227,10 +227,6 @@ export default function PollDetailsPage() {
       {
         onSuccess: () => {
           updateBalance(balance - amount);
-          const selectedOption = poll.options.find(
-            (opt: any) => opt.id === selectedOptionId
-          );
-
           // Track successful stake
           trackStakePlaced(poll.id, selectedOptionId, amount, poll.category);
 

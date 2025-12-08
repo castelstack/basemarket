@@ -259,7 +259,7 @@ export default function Home() {
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-[#1F1F1F]/30 rounded-full blur-[150px] pointer-events-none" />
 
         <div className="relative z-10 max-w-3xl mx-auto w-full">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+          <div className="grid grid-cols-1 min-[745px]:grid-cols-2 gap-8 min-[745px]:gap-10 items-center">
             {/* Left - Content */}
             <div>
               {/* Badge */}
@@ -284,15 +284,23 @@ export default function Home() {
               </p>
 
               {/* CTA */}
-              <Link href="/polls" className="block">
-                <Button
-                  size="lg"
-                  className="w-full sm:w-auto bg-[#EDEDED] hover:bg-[#D8D8D8] text-[#0A0A0A] text-base font-medium rounded-full h-14 px-8 transition-colors"
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                <Link href="/polls">
+                  <Button
+                    size="lg"
+                    className="w-full sm:w-auto bg-[#EDEDED] hover:bg-[#D8D8D8] text-[#0A0A0A] text-base font-medium rounded-full h-14 px-8 transition-colors"
+                  >
+                    Start Predicting
+                    <ArrowRight className="ml-2 w-5 h-5" />
+                  </Button>
+                </Link>
+                <Link
+                  href="/guide"
+                  className="text-sm text-[#9A9A9A] hover:text-[#EDEDED] transition-colors font-light"
                 >
-                  Start Predicting
-                  <ArrowRight className="ml-2 w-5 h-5" />
-                </Button>
-              </Link>
+                  Learn how it works
+                </Link>
+              </div>
 
               {/* Stats Row */}
               {(totalPool > 0 || totalPlayers > 0) && (
@@ -333,7 +341,7 @@ export default function Home() {
             </div>
 
             {/* Right - Visual */}
-            <div className="hidden lg:block">
+            <div className="hidden min-[745px]:block">
               <div className="relative">
                 {/* Decorative glow */}
                 <div className="absolute -inset-4 bg-gradient-to-br from-[#1F1F1F]/20 to-transparent rounded-3xl blur-2xl" />

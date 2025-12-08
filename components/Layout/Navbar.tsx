@@ -29,6 +29,7 @@ import {
 } from "@coinbase/onchainkit/wallet";
 import {
   Bell,
+  BookOpen,
   ChevronDown,
   CircleDollarSign,
   Crown,
@@ -339,6 +340,15 @@ export default function Navbar() {
                       </Link>
                     )}
 
+                    {/* Guide Link */}
+                    <Link
+                      href="/guide"
+                      className="flex items-center gap-3 px-3 py-2.5 text-[#9A9A9A] hover:text-[#EDEDED] hover:bg-[#151515] rounded-xl transition-all"
+                    >
+                      <BookOpen className="w-4 h-4" />
+                      <span>Guide</span>
+                    </Link>
+
                     {/* Basename - Link to profile or create one */}
                     <WalletDropdownBasename className="!px-3 !py-2.5 !text-[#9A9A9A] hover:!text-[#EDEDED] hover:!bg-[#151515] !rounded-xl !transition-all" />
 
@@ -430,6 +440,16 @@ export default function Navbar() {
                     >
                       <User className="w-4 h-4" />
                       <span>Profile</span>
+                    </Link>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem asChild>
+                    <Link
+                      href="/guide"
+                      className="flex items-center gap-3 px-3 py-2.5 text-[#9A9A9A] hover:text-[#EDEDED] hover:bg-[#151515] rounded-xl transition-all cursor-pointer"
+                    >
+                      <BookOpen className="w-4 h-4" />
+                      <span>Guide</span>
                     </Link>
                   </DropdownMenuItem>
 
